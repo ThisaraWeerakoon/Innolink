@@ -6,10 +6,7 @@ import com.innovest.repository.AccessRequestRepository;
 import com.innovest.repository.DealDocumentRepository;
 import com.innovest.repository.DealRepository;
 import com.innovest.repository.UserRepository;
-import com.innovest.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,19 +48,22 @@ public class DealService {
     }
 
     @Transactional(readOnly = true)
-    public PrivateDealDTO getPrivateDeal(UUID dealId, CustomUserDetails currentUser) {
+    public PrivateDealDTO getPrivateDeal(UUID dealId, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         boolean hasAccess = false;
 
         // 1. Owner (Innovator)
-        if (deal.getInnovator().getId().equals(currentUser.getId())) {
+        if (deal.getInnovator().getId().equals(userId)) {
             hasAccess = true;
         }
         // 2. Investor with APPROVED request and SIGNED NDA
-        else if (currentUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_INVESTOR"))) {
-            AccessRequest request = accessRequestRepository.findByDealIdAndInvestorId(dealId, currentUser.getId())
+        else if (user.getRole() == UserRole.INVESTOR) {
+            AccessRequest request = accessRequestRepository.findByDealIdAndInvestorId(dealId, userId)
                     .orElse(null);
             
             if (request != null && request.getStatus() == RequestStatus.APPROVED && request.isNdaSigned()) {
@@ -72,7 +72,7 @@ public class DealService {
         }
 
         if (!hasAccess) {
-            throw new AccessDeniedException("You do not have access to this deal's private details.");
+            throw new RuntimeException("You do not have access to this deal's private details.");
         }
 
         List<DealDocument> documents = dealDocumentRepository.findByDealId(dealId);
