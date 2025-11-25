@@ -70,4 +70,7 @@ public class AccessRequestService {
         request.setNdaSigned(true);
         return accessRequestRepository.save(request);
     }
+    public AccessRequest getAccessRequest(UUID dealId, UUID investorId) {
+        return accessRequestRepository.findByDealIdAndInvestorId(dealId, investorId).orElse(null);
+    }
 }
