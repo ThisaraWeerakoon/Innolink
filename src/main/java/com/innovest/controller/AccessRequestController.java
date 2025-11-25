@@ -31,4 +31,8 @@ public class AccessRequestController {
     public ResponseEntity<AccessRequest> signNda(@PathVariable UUID id, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.signNda(id, userId));
     }
+    @GetMapping("/access/status/{dealId}")
+    public ResponseEntity<AccessRequest> getAccessStatus(@PathVariable UUID dealId, @RequestParam UUID userId) {
+        return ResponseEntity.ok(accessRequestService.getAccessRequest(dealId, userId));
+    }
 }
