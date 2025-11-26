@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 const InnovatorDashboard = () => {
     const { user, api } = useAuth();
     const [listings, setListings] = useState([]);
+    const [requests, setRequests] = useState([]);
     const [title, setTitle] = useState('');
     const [industry, setIndustry] = useState('');
     const [goal, setGoal] = useState('');
@@ -14,8 +15,29 @@ const InnovatorDashboard = () => {
     useEffect(() => {
         if (user) {
             fetchListings();
+            fetchRequests();
         }
     }, [user]);
+
+    const fetchRequests = async () => {
+        try {
+            const response = await api.get(`/innovator/requests?userId=${user.id}`);
+            setRequests(response.data);
+        } catch (error) {
+            console.error("Failed to fetch requests:", error);
+        }
+    };
+
+    const handleApproveRequest = async (requestId) => {
+        try {
+            await api.put(`/innovator/requests/${requestId}?userId=${user.id}`);
+            alert('Request approved!');
+            fetchRequests();
+        } catch (error) {
+            console.error("Failed to approve request:", error);
+            alert("Failed to approve request");
+        }
+    };
 
     const fetchListings = async () => {
         try {
@@ -144,7 +166,31 @@ const InnovatorDashboard = () => {
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-xl font-bold mb-4 text-slate-800">Access Requests</h2>
-                    <p className="text-slate-500 italic">No pending requests.</p>
+                    {requests.length === 0 ? (
+                        <p className="text-slate-500 italic">No pending requests.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {requests.map(req => (
+                                <div key={req.id} className="border p-4 rounded flex justify-between items-center">
+                                    <div>
+                                        <p className="font-bold text-slate-800">{req.deal.title}</p>
+                                        <p className="text-sm text-slate-600">Investor: {req.investor.email}</p>
+                                        <span className={`text-xs px-2 py-0.5 rounded ${req.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            {req.status}
+                                        </span>
+                                    </div>
+                                    {req.status === 'PENDING' && (
+                                        <button
+                                            onClick={() => handleApproveRequest(req.id)}
+                                            className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
+                                        >
+                                            Approve
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
