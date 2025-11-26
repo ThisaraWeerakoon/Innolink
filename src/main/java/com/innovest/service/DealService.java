@@ -42,6 +42,23 @@ public class DealService {
     }
 
     @Transactional
+    public Deal submitDealForApproval(UUID dealId, UUID userId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        if (!deal.getInnovator().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized: You are not the owner of this deal");
+        }
+
+        if (deal.getStatus() != DealStatus.DRAFT) {
+            throw new RuntimeException("Only DRAFT deals can be submitted for approval");
+        }
+
+        deal.setStatus(DealStatus.PENDING_APPROVAL);
+        return dealRepository.save(deal);
+    }
+
+    @Transactional
     public DealDocument addDocumentToDeal(UUID dealId, DealDocument document, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
@@ -59,6 +76,10 @@ public class DealService {
         return dealRepository.findByStatus(DealStatus.ACTIVE).stream()
                 .map(dealMapper::toPublicDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<Deal> getDealsByInnovator(UUID innovatorId) {
+        return dealRepository.findByInnovatorId(innovatorId);
     }
 
     @Transactional(readOnly = true)
