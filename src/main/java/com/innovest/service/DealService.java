@@ -41,6 +41,20 @@ public class DealService {
         return dealRepository.save(deal);
     }
 
+    @Transactional
+    public DealDocument addDocumentToDeal(UUID dealId, DealDocument document, UUID userId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+        
+        if (!deal.getInnovator().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized: You are not the owner of this deal");
+        }
+
+        document.setDeal(deal);
+        document.setCreatedAt(java.time.LocalDateTime.now());
+        return dealDocumentRepository.save(document);
+    }
+
     public List<PublicDealDTO> getPublicDeals() {
         return dealRepository.findByStatus(DealStatus.ACTIVE).stream()
                 .map(dealMapper::toPublicDto)
