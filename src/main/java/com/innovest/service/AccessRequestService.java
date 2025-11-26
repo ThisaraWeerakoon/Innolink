@@ -73,4 +73,8 @@ public class AccessRequestService {
     public AccessRequest getAccessRequest(UUID dealId, UUID investorId) {
         return accessRequestRepository.findByDealIdAndInvestorId(dealId, investorId).orElse(null);
     }
+
+    public java.util.List<AccessRequest> getRequestsByInnovator(UUID innovatorId) {
+        return accessRequestRepository.findByDealInnovatorId(innovatorId);
+    }
 }
