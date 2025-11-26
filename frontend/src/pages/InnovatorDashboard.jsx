@@ -26,6 +26,17 @@ const InnovatorDashboard = () => {
         }
     };
 
+    const handleSubmitForApproval = async (dealId) => {
+        try {
+            await api.post(`/innovator/deals/${dealId}/submit?userId=${user.id}`);
+            alert('Deal submitted for approval!');
+            fetchListings();
+        } catch (error) {
+            console.error("Failed to submit deal:", error);
+            alert(`Failed to submit: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
@@ -114,10 +125,18 @@ const InnovatorDashboard = () => {
                                     <p className="text-sm text-slate-600">{deal.industry}</p>
                                     <div className="flex justify-between mt-2 text-sm">
                                         <span className="font-semibold text-emerald-600">${deal.targetAmount.toLocaleString()}</span>
-                                        <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                        <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
                                             {deal.status}
                                         </span>
                                     </div>
+                                    {deal.status === 'DRAFT' && (
+                                        <button
+                                            onClick={() => handleSubmitForApproval(deal.id)}
+                                            className="mt-3 w-full bg-blue-600 text-white text-sm py-1 rounded hover:bg-blue-700"
+                                        >
+                                            Submit for Approval
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                         </div>
