@@ -55,19 +55,37 @@ public class AccessRequestService {
     }
 
     @Transactional
-    public AccessRequest signNda(UUID requestId, UUID investorId) {
+    public AccessRequest signNda(UUID requestId, UUID userId) {
         AccessRequest request = accessRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
-        if (!request.getInvestor().getId().equals(investorId)) {
-            throw new RuntimeException("Not authorized to sign NDA for this request");
+        if (!request.getInvestor().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
         }
 
         if (request.getStatus() != RequestStatus.APPROVED) {
-            throw new RuntimeException("Request must be approved before signing NDA");
+            throw new RuntimeException("Request must be APPROVED to sign NDA");
         }
 
         request.setNdaSigned(true);
+        request.setNdaSignedAt(java.time.LocalDateTime.now());
+        return accessRequestRepository.save(request);
+    }
+
+    @Transactional
+    public AccessRequest requestIntro(UUID requestId, UUID userId) {
+        AccessRequest request = accessRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (!request.getInvestor().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (!request.isNdaSigned()) {
+            throw new RuntimeException("NDA must be signed before requesting intro");
+        }
+
+        request.setIntroRequested(true);
         return accessRequestRepository.save(request);
     }
     public AccessRequest getAccessRequest(UUID dealId, UUID investorId) {
