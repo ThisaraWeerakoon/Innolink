@@ -21,6 +21,7 @@ function App() {
           {/* Admin Routes */}
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route path="/admin" element={<AdminVerify />} />
+            <Route path="/admin/verify" element={<AdminVerify />} />
           </Route>
 
           {/* Innovator Routes */}
