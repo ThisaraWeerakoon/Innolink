@@ -7,23 +7,31 @@ const InnovatorDashboard = () => {
     const [industry, setIndustry] = useState('');
     const [goal, setGoal] = useState('');
     const [teaser, setTeaser] = useState('');
-    const [privateContent, setPrivateContent] = useState('');
+    const [docUrl, setDocUrl] = useState('');
+    const [docType, setDocType] = useState('PITCH_DECK');
 
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            await api.post(`/innovator/deals?userId=${user.id}`, {
+            const dealResponse = await api.post(`/innovator/deals?userId=${user.id}`, {
                 title,
                 industry,
-                fundingGoal: parseFloat(goal),
-                teaser,
-                privateContent, // Assuming backend accepts this in Deal object or separate
-                // Backend Deal entity has privateContent? Let's assume yes or mapped.
+                targetAmount: parseFloat(goal),
+                teaserSummary: teaser,
             });
+
+            if (docUrl) {
+                await api.post(`/innovator/deals/${dealResponse.data.id}/documents?userId=${user.id}`, {
+                    fileUrl: docUrl,
+                    fileType: docType,
+                    isPrivate: true
+                });
+            }
             alert('Listing created!');
             // Reset form
         } catch (error) {
-            alert('Failed to create listing');
+            console.error("Deal Creation Error:", error);
+            alert(`Failed to create listing: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -53,8 +61,16 @@ const InnovatorDashboard = () => {
                         <textarea className="w-full p-2 border rounded h-24" value={teaser} onChange={e => setTeaser(e.target.value)} required />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">Private Content (Data Room)</label>
-                        <textarea className="w-full p-2 border rounded h-32" value={privateContent} onChange={e => setPrivateContent(e.target.value)} required />
+                        <label className="block text-sm font-medium text-slate-700">Private Document URL</label>
+                        <input className="w-full p-2 border rounded" value={docUrl} onChange={e => setDocUrl(e.target.value)} placeholder="https://example.com/pitch-deck.pdf" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">Document Type</label>
+                        <select className="w-full p-2 border rounded" value={docType} onChange={e => setDocType(e.target.value)}>
+                            <option value="PITCH_DECK">Pitch Deck</option>
+                            <option value="FINANCIALS">Financials</option>
+                            <option value="LEGAL">Legal</option>
+                        </select>
                     </div>
                     <button type="submit" className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-slate-800">
                         Create Listing
