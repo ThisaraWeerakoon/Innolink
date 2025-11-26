@@ -58,6 +58,26 @@ public class DealService {
         return dealRepository.save(deal);
     }
 
+    public List<Deal> getPendingDeals() {
+        return dealRepository.findByStatus(DealStatus.PENDING_APPROVAL);
+    }
+
+    @Transactional
+    public Deal approveDeal(UUID dealId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+        deal.setStatus(DealStatus.ACTIVE);
+        return dealRepository.save(deal);
+    }
+
+    @Transactional
+    public Deal rejectDeal(UUID dealId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+        deal.setStatus(DealStatus.REJECTED);
+        return dealRepository.save(deal);
+    }
+
     @Transactional
     public DealDocument addDocumentToDeal(UUID dealId, DealDocument document, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
