@@ -1,6 +1,7 @@
 package com.innovest.controller;
 
 import com.innovest.domain.Deal;
+import com.innovest.domain.DealDocument;
 import com.innovest.dto.PrivateDealDTO;
 import com.innovest.dto.PublicDealDTO;
 
@@ -23,6 +24,11 @@ public class DealController {
     @PostMapping("/innovator/deals")
     public ResponseEntity<Deal> createDeal(@RequestBody Deal deal, @RequestParam UUID userId) {
         return ResponseEntity.ok(dealService.createDeal(deal, userId));
+    }
+
+    @PostMapping("/innovator/deals/{id}/documents")
+    public ResponseEntity<DealDocument> addDocument(@PathVariable UUID id, @RequestBody DealDocument document, @RequestParam UUID userId) {
+        return ResponseEntity.ok(dealService.addDocumentToDeal(id, document, userId));
     }
 
     @GetMapping("/public/deals")
