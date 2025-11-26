@@ -40,14 +40,22 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const response = await axios.post('http://localhost:8080/api/auth/login', { email, password });
-            // Backend currently returns User object only. We'll simulate a token.
-            const userData = response.data;
-            const mockToken = "mock-jwt-token-" + userData.id;
 
-            setToken(mockToken);
+            // Response now contains { accessToken, userId, email, role, tokenType }
+            const { accessToken, userId, email: userEmail, role } = response.data;
+
+            const userData = {
+                id: userId,
+                email: userEmail,
+                role: role
+            };
+
+            setToken(accessToken);
             setUser(userData);
-            localStorage.setItem('token', mockToken);
+
+            localStorage.setItem('token', accessToken);
             localStorage.setItem('user', JSON.stringify(userData));
+
             return userData;
         } catch (error) {
             console.error("Login failed", error);

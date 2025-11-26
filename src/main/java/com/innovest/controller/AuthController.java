@@ -2,6 +2,7 @@ package com.innovest.controller;
 
 import com.innovest.domain.User;
 
+import com.innovest.dto.AuthResponse;
 import com.innovest.dto.LoginRequest;
 import com.innovest.dto.RegisterRequest;
 import com.innovest.service.AuthService;
@@ -22,7 +23,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<User> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 
