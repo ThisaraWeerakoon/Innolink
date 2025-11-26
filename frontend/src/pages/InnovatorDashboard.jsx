@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const InnovatorDashboard = () => {
     const { user, api } = useAuth();
+    const [listings, setListings] = useState([]);
     const [title, setTitle] = useState('');
     const [industry, setIndustry] = useState('');
     const [goal, setGoal] = useState('');
     const [teaser, setTeaser] = useState('');
     const [docUrl, setDocUrl] = useState('');
     const [docType, setDocType] = useState('PITCH_DECK');
+
+    useEffect(() => {
+        if (user) {
+            fetchListings();
+        }
+    }, [user]);
+
+    const fetchListings = async () => {
+        try {
+            const response = await api.get(`/innovator/deals?userId=${user.id}`);
+            setListings(response.data);
+        } catch (error) {
+            console.error("Failed to fetch listings:", error);
+        }
+    };
 
     const handleCreate = async (e) => {
         e.preventDefault();
@@ -29,6 +45,12 @@ const InnovatorDashboard = () => {
             }
             alert('Listing created!');
             // Reset form
+            setTitle('');
+            setIndustry('');
+            setGoal('');
+            setTeaser('');
+            setDocUrl('');
+            fetchListings(); // Refresh listings
         } catch (error) {
             console.error("Deal Creation Error:", error);
             alert(`Failed to create listing: ${error.response?.data?.message || error.message}`);
@@ -78,11 +100,28 @@ const InnovatorDashboard = () => {
                 </form>
             </div>
 
-            {/* Placeholder for My Listings and Access Requests */}
+            {/* My Listings and Access Requests */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-xl font-bold mb-4 text-slate-800">My Listings</h2>
-                    <p className="text-slate-500 italic">No active listings.</p>
+                    {listings.length === 0 ? (
+                        <p className="text-slate-500 italic">No active listings.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {listings.map(deal => (
+                                <div key={deal.id} className="border p-4 rounded hover:bg-slate-50">
+                                    <h3 className="font-bold text-lg">{deal.title}</h3>
+                                    <p className="text-sm text-slate-600">{deal.industry}</p>
+                                    <div className="flex justify-between mt-2 text-sm">
+                                        <span className="font-semibold text-emerald-600">${deal.targetAmount.toLocaleString()}</span>
+                                        <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                            {deal.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-xl font-bold mb-4 text-slate-800">Access Requests</h2>
