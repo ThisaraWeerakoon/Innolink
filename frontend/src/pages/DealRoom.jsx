@@ -8,6 +8,7 @@ const DealRoom = () => {
     const { user, api } = useAuth();
     const [deal, setDeal] = useState(null);
     const [accessStatus, setAccessStatus] = useState(null); // 'APPROVED', 'PENDING', 'NONE'
+    const [accessRequest, setAccessRequest] = useState(null);
     const [privateData, setPrivateData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -15,8 +16,6 @@ const DealRoom = () => {
         const fetchDealData = async () => {
             try {
                 // 1. Fetch Public Details
-                // Ideally: const publicRes = await api.get(`/public/deals/${id}`);
-                // But we only have list, so we filter:
                 const publicRes = await api.get('/public/deals');
                 const publicDeal = publicRes.data.find(d => d.id === id);
                 setDeal(publicDeal);
@@ -24,13 +23,14 @@ const DealRoom = () => {
                 if (user && publicDeal) {
                     // 2. Check Access Status
                     const accessRes = await api.get(`/access/status/${id}?userId=${user.id}`);
-                    const accessRequest = accessRes.data;
+                    const request = accessRes.data;
+                    setAccessRequest(request);
 
-                    if (accessRequest) {
-                        setAccessStatus(accessRequest.status);
+                    if (request) {
+                        setAccessStatus(request.status);
 
-                        if (accessRequest.status === 'APPROVED') {
-                            // 3. Fetch Private Data
+                        if (request.status === 'APPROVED' && request.ndaSigned) {
+                            // 3. Fetch Private Data only if approved AND signed
                             const privateRes = await api.get(`/deals/${id}/full_details?userId=${user.id}`);
                             setPrivateData(privateRes.data);
                         }
@@ -50,11 +50,27 @@ const DealRoom = () => {
 
     const handleRequestAccess = async () => {
         try {
-            await api.post(`/deals/${id}/request?userId=${user.id}`);
+            const res = await api.post(`/deals/${id}/request?userId=${user.id}`);
+            setAccessRequest(res.data);
             setAccessStatus('PENDING');
         } catch (error) {
             console.error("Request failed", error);
             alert("Failed to request access");
+        }
+    };
+
+    const handleSignNda = async () => {
+        if (!accessRequest) return;
+        try {
+            const res = await api.post(`/investor/requests/${accessRequest.id}/sign-nda?userId=${user.id}`);
+            setAccessRequest(res.data);
+            // After signing, fetch private data
+            const privateRes = await api.get(`/deals/${id}/full_details?userId=${user.id}`);
+            setPrivateData(privateRes.data);
+            alert("NDA Signed. Access Granted.");
+        } catch (error) {
+            console.error("Failed to sign NDA", error);
+            alert("Failed to sign NDA");
         }
     };
 
@@ -116,8 +132,34 @@ const DealRoom = () => {
                     )}
                 </div>
 
+                {/* NDA Section */}
+                {accessStatus === 'APPROVED' && accessRequest && !accessRequest.ndaSigned && (
+                    <div className="bg-white p-8 rounded-xl shadow-sm border border-amber-200">
+                        <div className="flex items-center mb-4 text-amber-800">
+                            <Shield className="w-6 h-6 mr-2" />
+                            <h2 className="text-xl font-bold">Non-Disclosure Agreement Required</h2>
+                        </div>
+                        <div className="bg-amber-50 p-4 rounded border border-amber-100 text-sm text-amber-900 mb-6 h-48 overflow-y-auto">
+                            <p className="font-bold mb-2">CONFIDENTIALITY AGREEMENT</p>
+                            <p className="mb-2">By clicking "Sign & Accept" below, you agree to the following terms regarding the confidential information provided by {deal.innovator?.email || 'the Innovator'}:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                                <li>You will maintain the confidentiality of all information disclosed.</li>
+                                <li>You will not disclose this information to any third party without prior written consent.</li>
+                                <li>You will use this information solely for the purpose of evaluating a potential investment.</li>
+                                <li>You acknowledge that unauthorized disclosure may cause irreparable harm to the Innovator.</li>
+                            </ul>
+                        </div>
+                        <button
+                            onClick={handleSignNda}
+                            className="bg-amber-600 text-white px-6 py-2 rounded hover:bg-amber-700 font-medium w-full sm:w-auto transition-colors"
+                        >
+                            Sign & Accept NDA
+                        </button>
+                    </div>
+                )}
+
                 {/* Private Content */}
-                {accessStatus === 'APPROVED' && privateData && (
+                {accessStatus === 'APPROVED' && accessRequest && accessRequest.ndaSigned && privateData && (
                     <div className="mt-8 relative border-2 border-emerald-500/20 rounded-xl p-8 bg-white overflow-hidden shadow-sm">
                         {/* Watermark */}
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] select-none overflow-hidden">
@@ -127,11 +169,6 @@ const DealRoom = () => {
                         </div>
 
                         <div className="relative z-10 space-y-8">
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-900 mb-3 border-b border-slate-100 pb-2">Confidential Information</h3>
-                                <p className="text-slate-700 whitespace-pre-wrap">{privateData.privateContent}</p>
-                            </div>
-
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-900 mb-3 border-b border-slate-100 pb-2">Documents</h3>
                                 {privateData.documents && privateData.documents.length > 0 ? (
