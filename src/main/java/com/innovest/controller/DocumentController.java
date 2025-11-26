@@ -41,40 +41,35 @@ public class DocumentController {
     private com.innovest.repository.UserRepository userRepository;
 
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable UUID id, @RequestParam UUID userId) throws IOException {
-        DealDocument document = dealDocumentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+    public ResponseEntity<?> downloadDocument(@PathVariable UUID id, @RequestParam UUID userId) {
+        try {
+            DealDocument document = dealDocumentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Document not found"));
 
-        // Verify access using DealService logic (reusing the private deal access check)
-        // This ensures the user has access to the deal before downloading documents
-        dealService.getPrivateDeal(document.getDeal().getId(), userId);
-        
-        com.innovest.domain.User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            // Verify access using DealService logic (reusing the private deal access check)
+            dealService.getPrivateDeal(document.getDeal().getId(), userId);
+            
+            com.innovest.domain.User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // In a real app, fileUrl would be a path to S3 or local storage.
-        // For this example, we'll assume it's a valid URL or handle it as a mock.
-        // Since we don't have real files, I'll create a dummy PDF in memory if the URL is "mock".
-        
-        InputStream fileStream;
-        if ("mock".equals(document.getFileUrl())) {
-             // Create a simple PDF in memory for testing would be complex here without more deps or code.
-             // Instead, let's assume the fileUrl is a valid URL to a PDF or a local path.
-             // For safety in this environment, I will just return a text file masquerading as PDF if it's mock, 
-             // but the requirement is to use PDFBox.
-             // Let's assume the user will provide a valid URL or we just fail if not found.
-             throw new RuntimeException("Mock file download not fully implemented for demo without real files.");
-        } else {
-             fileStream = new URL(document.getFileUrl()).openStream();
+            InputStream fileStream;
+            if ("mock".equals(document.getFileUrl())) {
+                 throw new RuntimeException("Mock file download not fully implemented for demo without real files.");
+            } else {
+                 fileStream = new URL(document.getFileUrl()).openStream();
+            }
+
+            byte[] watermarkedPdf = pdfWatermarkService.watermarkPdf(fileStream, user.getEmail());
+            ByteArrayResource resource = new ByteArrayResource(watermarkedPdf);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + id + ".pdf\"")
+                    .contentLength(watermarkedPdf.length)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(resource);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-
-        byte[] watermarkedPdf = pdfWatermarkService.watermarkPdf(fileStream, user.getEmail());
-        ByteArrayResource resource = new ByteArrayResource(watermarkedPdf);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + id + ".pdf\"")
-                .contentLength(watermarkedPdf.length)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(resource);
     }
 }

@@ -180,12 +180,13 @@ const DealRoom = () => {
                                                     <span className="font-medium text-slate-700">{doc.name}</span>
                                                 </div>
                                                 <a
-                                                    href={doc.url}
+                                                    href={`http://localhost:8080/api/documents/${doc.id}/download?userId=${user.id}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors"
+                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center"
                                                 >
-                                                    View Document
+                                                    <Shield className="w-3 h-3 mr-1" />
+                                                    Download Watermarked
                                                 </a>
                                             </div>
                                         ))}

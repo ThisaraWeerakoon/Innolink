@@ -32,9 +32,9 @@ public class PdfWatermarkService {
                     float pageHeight = page.getMediaBox().getHeight();
                     
                     // Calculate diagonal position
+                    contentStream.beginText();
                     contentStream.setTextMatrix(Matrix.getRotateInstance(Math.toRadians(45), 200, 200));
                     
-                    contentStream.beginText();
                     contentStream.newLineAtOffset(100, 100); // Approximate center
                     contentStream.showText(watermarkText);
                     contentStream.endText();
