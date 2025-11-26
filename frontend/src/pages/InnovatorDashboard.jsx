@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ChatBox from '../components/ChatBox';
+import { MessageSquare, X } from 'lucide-react';
 
 const InnovatorDashboard = () => {
     const { user, api } = useAuth();
@@ -11,6 +13,9 @@ const InnovatorDashboard = () => {
     const [teaser, setTeaser] = useState('');
     const [docUrl, setDocUrl] = useState('');
     const [docType, setDocType] = useState('PITCH_DECK');
+
+    // Chat State
+    const [activeChat, setActiveChat] = useState(null); // { dealId, investorId, investorName }
 
     useEffect(() => {
         if (user) {
@@ -91,7 +96,7 @@ const InnovatorDashboard = () => {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <div className="p-8 max-w-4xl mx-auto relative">
             <h1 className="text-3xl font-bold mb-8 text-slate-900">Innovator Dashboard</h1>
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
@@ -175,24 +180,68 @@ const InnovatorDashboard = () => {
                                     <div>
                                         <p className="font-bold text-slate-800">{req.deal.title}</p>
                                         <p className="text-sm text-slate-600">Investor: {req.investor.email}</p>
-                                        <span className={`text-xs px-2 py-0.5 rounded ${req.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                            {req.status}
-                                        </span>
+                                        <div className="flex gap-2 mt-1">
+                                            <span className={`text-xs px-2 py-0.5 rounded ${req.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                {req.status}
+                                            </span>
+                                            {req.introRequested && (
+                                                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 flex items-center">
+                                                    <MessageSquare className="w-3 h-3 mr-1" />
+                                                    Chat Requested
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    {req.status === 'PENDING' && (
-                                        <button
-                                            onClick={() => handleApproveRequest(req.id)}
-                                            className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
-                                        >
-                                            Approve
-                                        </button>
-                                    )}
+                                    <div className="flex flex-col gap-2">
+                                        {req.status === 'PENDING' && (
+                                            <button
+                                                onClick={() => handleApproveRequest(req.id)}
+                                                className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+                                        {req.status === 'APPROVED' && req.introRequested && (
+                                            <button
+                                                onClick={() => setActiveChat({
+                                                    dealId: req.deal.id,
+                                                    investorId: req.investor.id,
+                                                    investorName: req.investor.email
+                                                })}
+                                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                                            >
+                                                <MessageSquare className="w-3 h-3 mr-1" />
+                                                Chat
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Chat Modal */}
+            {activeChat && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md h-[600px] flex flex-col overflow-hidden">
+                        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                            <h3 className="font-bold text-slate-800">Chat with {activeChat.investorName}</h3>
+                            <button onClick={() => setActiveChat(null)} className="text-slate-500 hover:text-slate-700">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <ChatBox
+                                dealId={activeChat.dealId}
+                                userId={user.id}
+                                otherUserName={activeChat.investorName}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
