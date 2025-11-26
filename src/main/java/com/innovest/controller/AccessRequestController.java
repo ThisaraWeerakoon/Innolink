@@ -35,4 +35,9 @@ public class AccessRequestController {
     public ResponseEntity<AccessRequest> getAccessStatus(@PathVariable UUID dealId, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.getAccessRequest(dealId, userId));
     }
+
+    @GetMapping("/innovator/requests")
+    public ResponseEntity<java.util.List<AccessRequest>> getRequestsByInnovator(@RequestParam UUID userId) {
+        return ResponseEntity.ok(accessRequestService.getRequestsByInnovator(userId));
+    }
 }
