@@ -14,4 +14,5 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, UU
     Optional<AccessRequest> findByDealIdAndInvestorId(UUID dealId, UUID investorId);
     List<AccessRequest> findByDealId(UUID dealId);
     List<AccessRequest> findByInvestorId(UUID investorId);
+    List<AccessRequest> findByDealInnovatorId(UUID innovatorId);
 }
