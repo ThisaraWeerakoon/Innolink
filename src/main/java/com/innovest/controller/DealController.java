@@ -26,6 +26,16 @@ public class DealController {
         return ResponseEntity.ok(dealService.createDeal(deal, userId));
     }
 
+    @PostMapping("/innovator/deals/{id}/submit")
+    public ResponseEntity<Deal> submitDeal(@PathVariable UUID id, @RequestParam UUID userId) {
+        return ResponseEntity.ok(dealService.submitDealForApproval(id, userId));
+    }
+
+    @GetMapping("/innovator/deals")
+    public ResponseEntity<List<Deal>> getDealsByInnovator(@RequestParam UUID userId) {
+        return ResponseEntity.ok(dealService.getDealsByInnovator(userId));
+    }
+
     @PostMapping("/innovator/deals/{id}/documents")
     public ResponseEntity<DealDocument> addDocument(@PathVariable UUID id, @RequestBody DealDocument document, @RequestParam UUID userId) {
         return ResponseEntity.ok(dealService.addDocumentToDeal(id, document, userId));
