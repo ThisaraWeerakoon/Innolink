@@ -4,8 +4,15 @@ public class AuthResponse {
     private String accessToken;
     private String tokenType = "Bearer";
 
-    public AuthResponse(String accessToken) {
+    private java.util.UUID userId;
+    private String email;
+    private String role;
+
+    public AuthResponse(String accessToken, java.util.UUID userId, String email, String role) {
         this.accessToken = accessToken;
+        this.userId = userId;
+        this.email = email;
+        this.role = role;
     }
 
     public String getAccessToken() {
@@ -22,5 +29,29 @@ public class AuthResponse {
 
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public java.util.UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(java.util.UUID userId) {
+        this.userId = userId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
