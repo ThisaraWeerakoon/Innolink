@@ -1,13 +1,16 @@
 name: Deploy Backend to Azure
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
-      - thisara_dev
+      - main
   workflow_dispatch:
 
 jobs:
   build-and-push:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
