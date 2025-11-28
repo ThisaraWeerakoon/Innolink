@@ -25,6 +25,9 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
@@ -36,10 +39,11 @@ public class AuthService {
 
         String token = jwtUtils.generateToken(new CustomUserDetails(user));
         return new AuthResponse(
-                token,
-                user.getId(),
-                user.getEmail(),
-                user.getRole().name());
+            token, 
+            user.getId(), 
+            user.getEmail(), 
+            user.getRole().name()
+        );
     }
 
     @Transactional
