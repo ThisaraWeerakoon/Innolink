@@ -25,9 +25,6 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
-    @Autowired
-    private JwtUtils jwtUtils;
-
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
