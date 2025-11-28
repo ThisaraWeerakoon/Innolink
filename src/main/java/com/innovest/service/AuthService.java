@@ -16,15 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-
-
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Autowired
     private JwtUtils jwtUtils;
