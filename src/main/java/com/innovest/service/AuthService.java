@@ -1,9 +1,12 @@
 package com.innovest.service;
 
 import com.innovest.domain.User;
+import com.innovest.dto.AuthResponse;
 import com.innovest.dto.LoginRequest;
 import com.innovest.dto.RegisterRequest;
 import com.innovest.repository.UserRepository;
+import com.innovest.security.CustomUserDetails;
+import com.innovest.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,18 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-
-
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Transactional
-    public User login(LoginRequest loginRequest) {
+    public AuthResponse login(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -32,7 +34,12 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return user;
+        String token = jwtUtils.generateToken(new CustomUserDetails(user));
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name());
     }
 
     @Transactional
