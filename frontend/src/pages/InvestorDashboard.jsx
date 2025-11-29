@@ -1,60 +1,63 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import MandateCard from '../components/MandateCard';
+import DealCard from '../components/DealCard';
 import { Search, Filter, Bookmark, Clock, Zap } from 'lucide-react';
 
-const InnovatorDashboard = () => {
+const InvestorDashboard = () => {
     const { api } = useAuth();
     const [activeTab, setActiveTab] = useState('best_matches');
-    const [mandates, setMandates] = useState([]);
+    const [deals, setDeals] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [savedMandateIds, setSavedMandateIds] = useState(new Set());
+    const [savedDealIds, setSavedDealIds] = useState(new Set());
 
-    // Dummy data for "Best Matches" and "Saved Mandates"
+    // Dummy data for "Best Matches" and "Saved Deals"
     const dummyBestMatches = [
-        { id: 'mm1', title: 'Green Energy Fund', industryPreference: 'Clean Energy', minInvestment: 100000, maxInvestment: 1000000, stagePreference: 'Seed', description: 'Looking for innovative solar and wind projects.' },
-        { id: 'mm2', title: 'Health Tech Ventures', industryPreference: 'Healthcare', minInvestment: 500000, maxInvestment: 2000000, stagePreference: 'Series A', description: 'Focusing on AI-driven diagnostic tools.' },
+        { id: 'dm1', title: 'EcoTech Solutions', industry: 'Clean Energy', targetAmount: 500000, teaserSummary: 'Revolutionary solar panel technology for residential use.', status: 'ACTIVE', location: 'San Francisco, CA' },
+        { id: 'dm2', title: 'HealthAI', industry: 'Healthcare', targetAmount: 1200000, teaserSummary: 'AI-powered diagnostic tool for early cancer detection.', status: 'ACTIVE', location: 'Boston, MA' },
+        { id: 'dm3', title: 'FinFlow', industry: 'Fintech', targetAmount: 750000, teaserSummary: 'Next-gen payment processing for small businesses.', status: 'ACTIVE', location: 'New York, NY' },
     ];
 
-    const dummySavedMandates = [
-        { id: 'ms1', title: 'AgriTech Capital', industryPreference: 'Agriculture', minInvestment: 200000, maxInvestment: 500000, stagePreference: 'Pre-Seed', description: 'Supporting sustainable farming solutions.' },
+    const dummySavedDeals = [
+        { id: 'ds1', title: 'AgriSmart', industry: 'Agriculture', targetAmount: 300000, teaserSummary: 'IoT sensors for optimizing crop yield.', status: 'ACTIVE', location: 'Austin, TX' },
     ];
 
     useEffect(() => {
-        fetchMandates();
+        fetchDeals();
     }, [activeTab]);
 
-    const fetchMandates = async () => {
+    const fetchDeals = async () => {
         setLoading(true);
         try {
             if (activeTab === 'most_recent') {
-                // Fetch real data for most recent mandates (if endpoint exists, otherwise dummy)
-                // const response = await api.get('/innovator/mandates'); 
-                // setMandates(response.data);
-                // Using dummy for now as backend might not have this endpoint ready
-                setTimeout(() => setMandates([...dummyBestMatches, ...dummySavedMandates]), 500);
+                // Fetch real data for most recent
+                const response = await api.get('/investor/deals');
+                setDeals(response.data);
             } else if (activeTab === 'best_matches') {
-                setTimeout(() => setMandates(dummyBestMatches), 500);
-            } else if (activeTab === 'saved_mandates') {
-                setTimeout(() => setMandates(dummySavedMandates), 500);
-                setSavedMandateIds(new Set(dummySavedMandates.map(m => m.id)));
+                // Simulate API call
+                setTimeout(() => setDeals(dummyBestMatches), 500);
+            } else if (activeTab === 'saved_deals') {
+                // Simulate API call
+                setTimeout(() => setDeals(dummySavedDeals), 500);
+                setSavedDealIds(new Set(dummySavedDeals.map(d => d.id)));
             }
         } catch (error) {
-            console.error("Failed to fetch mandates:", error);
-            setMandates([]);
+            console.error("Failed to fetch deals:", error);
+            // Fallback to empty list or error state
+            setDeals([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleSave = (mandateId) => {
-        const newSaved = new Set(savedMandateIds);
-        if (newSaved.has(mandateId)) {
-            newSaved.delete(mandateId);
+    const toggleSave = (dealId) => {
+        const newSaved = new Set(savedDealIds);
+        if (newSaved.has(dealId)) {
+            newSaved.delete(dealId);
         } else {
-            newSaved.add(mandateId);
+            newSaved.add(dealId);
         }
-        setSavedMandateIds(newSaved);
+        setSavedDealIds(newSaved);
+        // In a real app, you would call an API here
     };
 
     return (
@@ -63,8 +66,8 @@ const InnovatorDashboard = () => {
                 {/* Main Content */}
                 <div className="flex-1">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-slate-900">Find Mandates</h1>
-                        <p className="text-slate-500 mt-2">Connect with investors looking for projects like yours.</p>
+                        <h1 className="text-3xl font-bold text-slate-900">Find Deals</h1>
+                        <p className="text-slate-500 mt-2">Discover investment opportunities tailored to your preferences.</p>
                     </div>
 
                     {/* Tabs */}
@@ -85,11 +88,11 @@ const InnovatorDashboard = () => {
                                 Most Recent
                             </button>
                             <button
-                                onClick={() => setActiveTab('saved_mandates')}
-                                className={`${activeTab === 'saved_mandates' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                onClick={() => setActiveTab('saved_deals')}
+                                className={`${activeTab === 'saved_deals' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center`}
                             >
                                 <Bookmark className="w-4 h-4 mr-2" />
-                                Saved Mandates ({savedMandateIds.size})
+                                Saved Deals ({savedDealIds.size})
                             </button>
                         </nav>
                     </div>
@@ -101,16 +104,16 @@ const InnovatorDashboard = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {mandates.length === 0 ? (
+                            {deals.length === 0 ? (
                                 <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
-                                    <p className="text-slate-500">No mandates found.</p>
+                                    <p className="text-slate-500">No deals found.</p>
                                 </div>
                             ) : (
-                                mandates.map(mandate => (
-                                    <MandateCard
-                                        key={mandate.id}
-                                        mandate={mandate}
-                                        isSaved={savedMandateIds.has(mandate.id)}
+                                deals.map(deal => (
+                                    <DealCard
+                                        key={deal.id}
+                                        deal={deal}
+                                        isSaved={savedDealIds.has(deal.id)}
                                         onToggleSave={toggleSave}
                                     />
                                 ))
@@ -128,14 +131,14 @@ const InnovatorDashboard = () => {
                                 I
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-900">Innovator Profile</h3>
+                                <h3 className="font-bold text-slate-900">Investor Profile</h3>
                                 <p className="text-sm text-slate-500">Complete your profile</p>
                             </div>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-2.5 mb-4">
-                            <div className="bg-emerald-600 h-2.5 rounded-full" style={{ width: '60%' }}></div>
+                            <div className="bg-emerald-600 h-2.5 rounded-full" style={{ width: '40%' }}></div>
                         </div>
-                        <p className="text-xs text-slate-500 mb-4">60% completed</p>
+                        <p className="text-xs text-slate-500 mb-4">40% completed</p>
                         <button className="w-full border border-emerald-600 text-emerald-600 rounded py-2 text-sm font-medium hover:bg-emerald-50">
                             Edit Profile
                         </button>
@@ -143,8 +146,8 @@ const InnovatorDashboard = () => {
 
                     {/* Promote */}
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                        <h3 className="font-bold text-slate-900 mb-2">Get Funded Faster</h3>
-                        <p className="text-sm text-slate-500 mb-4">Highlight your deal to top investors.</p>
+                        <h3 className="font-bold text-slate-900 mb-2">Promote with ads</h3>
+                        <p className="text-sm text-slate-500 mb-4">Boost your visibility to top startups.</p>
                         <button className="text-emerald-600 text-sm font-medium hover:underline">
                             Learn more
                         </button>
@@ -155,4 +158,4 @@ const InnovatorDashboard = () => {
     );
 };
 
-export default InnovatorDashboard;
+export default InvestorDashboard;
