@@ -180,7 +180,7 @@ const DealRoom = () => {
                                                     <span className="font-medium text-slate-700">{doc.name}</span>
                                                 </div>
                                                 <a
-                                                    href={`${import.meta.env.VITE_API_URL}/api/documents/${doc.id}/download?userId=${user.id}`}
+                                                    href={`https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net/api/documents/${doc.id}/download?userId=${user.id}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center"
@@ -263,7 +263,7 @@ const ChatBox = ({ dealId, userId }) => {
         fetchMessages();
 
         // WebSocket Connection
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const apiUrl = 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net';
         const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
 
         const client = new Client({
