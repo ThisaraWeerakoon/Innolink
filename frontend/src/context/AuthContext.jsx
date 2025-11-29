@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     // Create axios instance
     const api = axios.create({
-        baseURL: import.meta.env.VITE_API_URL,
+        baseURL: `${import.meta.env.VITE_API_URL}/api`,
     });
 
     // Attach token to requests
