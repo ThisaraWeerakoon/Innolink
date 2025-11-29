@@ -4,8 +4,10 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17-jdk-slim
+# Runtime stage uses Temurin JRE (smaller footprint, consistent with CI setup-java distribution)
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+# Copy the built jar (assumes a single jar artifact). Adjust the pattern if multiple jars are produced.
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
