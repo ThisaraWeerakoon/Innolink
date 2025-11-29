@@ -22,7 +22,7 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
         fetchMessages();
 
         // WebSocket Connection
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const apiUrl = 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net';
         const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
 
         const client = new Client({
