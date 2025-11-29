@@ -180,7 +180,7 @@ const DealRoom = () => {
                                                     <span className="font-medium text-slate-700">{doc.name}</span>
                                                 </div>
                                                 <a
-                                                    href={`http://localhost:8080/api/documents/${doc.id}/download?userId=${user.id}`}
+                                                    href={`${import.meta.env.VITE_API_URL}/documents/${doc.id}/download?userId=${user.id}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center"
@@ -263,8 +263,11 @@ const ChatBox = ({ dealId, userId }) => {
         fetchMessages();
 
         // WebSocket Connection
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
+
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws',
+            brokerURL: wsUrl,
             onConnect: () => {
                 console.log('Connected to WebSocket');
                 client.subscribe(`/topic/deal/${dealId}`, (message) => {
@@ -312,8 +315,8 @@ const ChatBox = ({ dealId, userId }) => {
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.sender.id === userId ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.sender.id === userId
-                                ? 'bg-emerald-600 text-white rounded-br-none'
-                                : 'bg-slate-100 text-slate-800 rounded-bl-none'
+                            ? 'bg-emerald-600 text-white rounded-br-none'
+                            : 'bg-slate-100 text-slate-800 rounded-bl-none'
                             }`}>
                             <p>{msg.content}</p>
                             <span className="text-xs opacity-70 mt-1 block">
