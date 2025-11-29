@@ -22,8 +22,11 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
         fetchMessages();
 
         // WebSocket Connection
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
+
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws',
+            brokerURL: wsUrl,
             onConnect: () => {
                 console.log('Connected to WebSocket');
                 client.subscribe(`/topic/deal/${dealId}`, (message) => {
@@ -75,8 +78,8 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.sender.id === userId ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.sender.id === userId
-                                ? 'bg-emerald-600 text-white rounded-br-none'
-                                : 'bg-slate-100 text-slate-800 rounded-bl-none'
+                            ? 'bg-emerald-600 text-white rounded-br-none'
+                            : 'bg-slate-100 text-slate-800 rounded-bl-none'
                             }`}>
                             <p>{msg.content}</p>
                             <span className="text-xs opacity-70 mt-1 block">

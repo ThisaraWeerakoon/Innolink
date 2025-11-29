@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     // Create axios instance
     const api = axios.create({
-        baseURL: 'http://localhost:8080/api',
+        baseURL: import.meta.env.VITE_API_URL,
     });
 
     // Attach token to requests
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', { email, password });
+            const response = await api.post('/auth/login', { email, password });
 
             // Response now contains { accessToken, userId, email, role, tokenType }
             const { accessToken, userId, email: userEmail, role } = response.data;
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const register = async (userData) => {
-        return axios.post('http://localhost:8080/api/auth/register', userData);
+        return api.post('/auth/register', userData);
     };
 
     const logout = () => {
