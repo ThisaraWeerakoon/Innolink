@@ -21,8 +21,15 @@ public class MandateService {
     private final MandateRepository mandateRepository;
     private final UserRepository userRepository;
 
-    public List<MandateDTO> getAllMandates() {
-        return mandateRepository.findAll().stream()
+    public List<MandateDTO> getAllMandates(String sortBy) {
+        List<Mandate> mandates;
+        if ("recent".equals(sortBy)) {
+            mandates = mandateRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        } else {
+            mandates = mandateRepository.findAll();
+        }
+        
+        return mandates.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

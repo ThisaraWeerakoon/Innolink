@@ -20,8 +20,8 @@ public class MandateController {
     private final MandateService mandateService;
 
     @GetMapping
-    public ResponseEntity<List<MandateDTO>> getAllMandates() {
-        return ResponseEntity.ok(mandateService.getAllMandates());
+    public ResponseEntity<List<MandateDTO>> getAllMandates(@RequestParam(required = false) String sortBy) {
+        return ResponseEntity.ok(mandateService.getAllMandates(sortBy));
     }
 
     @PostMapping("/{id}/save")

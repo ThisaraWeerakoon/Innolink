@@ -34,6 +34,9 @@ const InnovatorDashboard = () => {
 
             if (activeTab === 'saved_mandates') {
                 setMandates(savedResponse.data);
+            } else if (activeTab === 'most_recent') {
+                const response = await api.get('/mandates?sortBy=recent');
+                setMandates(response.data);
             } else {
                 // Fetch all mandates for other tabs (filtering can be added later)
                 const response = await api.get('/mandates');
