@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     // Create axios instance
     const api = axios.create({
-        baseURL: 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net/api',
+        baseURL: import.meta.env.VITE_API_URL,
     });
 
     // Attach token to requests
