@@ -13,6 +13,7 @@ import CreateDeal from './pages/CreateDeal';
 import DealRoom from './pages/DealRoom';
 import Profile from './pages/Profile';
 import InnovatorPublicProfile from './pages/InnovatorPublicProfile';
+import InvestorPublicProfile from './pages/InvestorPublicProfile';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="/listing/:id" element={<DealRoom />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/innovator/:id" element={<InnovatorPublicProfile />} />
+            <Route path="/investor/:id" element={<InvestorPublicProfile />} />
           </Route>
         </Routes>
       </BrowserRouter>

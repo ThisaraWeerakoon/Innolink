@@ -96,6 +96,31 @@ public class UserController {
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping("/investor/{id}")
+    public ResponseEntity<UserDTO> getInvestorPublicProfile(@PathVariable java.util.UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getRole() != com.innovest.domain.UserRole.INVESTOR) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Return only public info
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail()); // Using email as name for now
+        
+        if (user.getInvestorProfile() != null) {
+            com.innovest.domain.InvestorProfile profile = user.getInvestorProfile();
+            dto.setMinTicketSize(profile.getMinTicketSize());
+            dto.setMaxTicketSize(profile.getMaxTicketSize());
+            dto.setInterestedIndustries(profile.getInterestedIndustries());
+            // Do not expose accreditationDocUrl
+        }
+        
+        return ResponseEntity.ok(dto);
+    }
+
     private UserDTO convertToDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());

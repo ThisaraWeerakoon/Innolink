@@ -1,4 +1,5 @@
 import { Heart, Target, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
     return (
@@ -7,6 +8,11 @@ const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
                 <div>
                     <h3 className="font-bold text-lg text-slate-900">{mandate.title || "Investment Mandate"}</h3>
                     <p className="text-sm text-slate-500 mt-1">{mandate.industryPreference}</p>
+                    {mandate.investorId && (
+                        <Link to={`/investor/${mandate.investorId}`} className="text-xs text-emerald-600 hover:underline mt-1 block">
+                            Posted by: {mandate.investorName}
+                        </Link>
+                    )}
                 </div>
                 <button
                     onClick={() => onToggleSave(mandate.id)}
