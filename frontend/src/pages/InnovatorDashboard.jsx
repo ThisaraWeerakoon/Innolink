@@ -122,7 +122,13 @@ const InnovatorDashboard = () => {
                                 mandates.map(mandate => (
                                     <MandateCard
                                         key={mandate.id}
-                                        mandate={mandate}
+                                        mandate={{
+                                            ...mandate,
+                                            industryPreference: mandate.targetIndustry, // Map backend field to frontend prop
+                                            minInvestment: mandate.minTicketSize,
+                                            maxInvestment: mandate.maxTicketSize,
+                                            stagePreference: mandate.stagePreference
+                                        }}
                                         isSaved={savedMandateIds.has(mandate.id)}
                                         onToggleSave={toggleSave}
                                     />

@@ -61,9 +61,14 @@ public class MandateService {
     private MandateDTO convertToDTO(Mandate mandate) {
         MandateDTO dto = new MandateDTO();
         dto.setId(mandate.getId());
+        dto.setTitle(mandate.getTitle());
         dto.setDescription(mandate.getDescription());
-        dto.setAmountAllocation(mandate.getAmountAllocation());
         dto.setTargetIndustry(mandate.getTargetIndustry());
+        dto.setStagePreference(mandate.getStagePreference());
+        dto.setMinTicketSize(mandate.getMinTicketSize());
+        dto.setMaxTicketSize(mandate.getMaxTicketSize());
+        dto.setGeography(mandate.getGeography());
+        dto.setCurrency(mandate.getCurrency());
         dto.setCreatedAt(mandate.getCreatedAt());
         dto.setInvestorId(mandate.getInvestor().getId());
         dto.setInvestorName(mandate.getInvestor().getEmail()); // Or add a name field to User later

@@ -24,13 +24,26 @@ public class Mandate {
     private User investor;
 
     @Column(nullable = false)
-    private String description;
+    private String title;
 
-    @Column(name = "amount_allocation")
-    private BigDecimal amountAllocation;
+    @Column(nullable = false)
+    private String description;
 
     @Column(name = "target_industry")
     private String targetIndustry;
+
+    @Column(name = "stage_preference")
+    private String stagePreference;
+
+    @Column(name = "min_ticket_size")
+    private BigDecimal minTicketSize;
+
+    @Column(name = "max_ticket_size")
+    private BigDecimal maxTicketSize;
+
+    private String geography;
+
+    private String currency = "USD";
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
