@@ -37,6 +37,9 @@ public class AuthController {
 
     @GetMapping("/verify")
     public ResponseEntity<User> verifyUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            return ResponseEntity.status(401).build();
+        }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(userDetails.getUser());
     }

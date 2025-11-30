@@ -37,6 +37,7 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "user_saved_mandates",
