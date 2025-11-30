@@ -27,17 +27,17 @@ const InnovatorDashboard = () => {
     const fetchMandates = async () => {
         setLoading(true);
         try {
-            if (activeTab === 'most_recent') {
-                // Fetch real data for most recent mandates (if endpoint exists, otherwise dummy)
-                // const response = await api.get('/innovator/mandates'); 
-                // setMandates(response.data);
-                // Using dummy for now as backend might not have this endpoint ready
-                setTimeout(() => setMandates([...dummyBestMatches, ...dummySavedMandates]), 500);
-            } else if (activeTab === 'best_matches') {
-                setTimeout(() => setMandates(dummyBestMatches), 500);
-            } else if (activeTab === 'saved_mandates') {
-                setTimeout(() => setMandates(dummySavedMandates), 500);
-                setSavedMandateIds(new Set(dummySavedMandates.map(m => m.id)));
+            // Always fetch saved mandates to check status
+            const savedResponse = await api.get('/mandates/saved');
+            const savedIds = new Set(savedResponse.data.map(m => m.id));
+            setSavedMandateIds(savedIds);
+
+            if (activeTab === 'saved_mandates') {
+                setMandates(savedResponse.data);
+            } else {
+                // Fetch all mandates for other tabs (filtering can be added later)
+                const response = await api.get('/mandates');
+                setMandates(response.data);
             }
         } catch (error) {
             console.error("Failed to fetch mandates:", error);
@@ -47,14 +47,27 @@ const InnovatorDashboard = () => {
         }
     };
 
-    const toggleSave = (mandateId) => {
-        const newSaved = new Set(savedMandateIds);
-        if (newSaved.has(mandateId)) {
-            newSaved.delete(mandateId);
-        } else {
-            newSaved.add(mandateId);
+    const toggleSave = async (mandateId) => {
+        try {
+            if (savedMandateIds.has(mandateId)) {
+                await api.delete(`/mandates/${mandateId}/save`);
+                const newSaved = new Set(savedMandateIds);
+                newSaved.delete(mandateId);
+                setSavedMandateIds(newSaved);
+
+                // If on saved tab, remove from list
+                if (activeTab === 'saved_mandates') {
+                    setMandates(prev => prev.filter(m => m.id !== mandateId));
+                }
+            } else {
+                await api.post(`/mandates/${mandateId}/save`);
+                const newSaved = new Set(savedMandateIds);
+                newSaved.add(mandateId);
+                setSavedMandateIds(newSaved);
+            }
+        } catch (error) {
+            console.error("Failed to toggle save:", error);
         }
-        setSavedMandateIds(newSaved);
     };
 
     return (

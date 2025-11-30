@@ -37,6 +37,14 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToMany
+    @JoinTable(
+        name = "user_saved_mandates",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "mandate_id")
+    )
+    private java.util.Set<Mandate> savedMandates = new java.util.HashSet<>();
+
     public UUID getId() {
         return id;
     }
@@ -91,5 +99,13 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.util.Set<Mandate> getSavedMandates() {
+        return savedMandates;
+    }
+
+    public void setSavedMandates(java.util.Set<Mandate> savedMandates) {
+        this.savedMandates = savedMandates;
     }
 }
