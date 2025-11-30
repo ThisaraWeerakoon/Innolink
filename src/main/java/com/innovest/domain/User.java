@@ -46,6 +46,15 @@ public class User {
     )
     private java.util.Set<Mandate> savedMandates = new java.util.HashSet<>();
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToMany
+    @JoinTable(
+        name = "user_saved_deals",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "deal_id")
+    )
+    private java.util.Set<Deal> savedDeals = new java.util.HashSet<>();
+
     public UUID getId() {
         return id;
     }
@@ -108,5 +117,13 @@ public class User {
 
     public void setSavedMandates(java.util.Set<Mandate> savedMandates) {
         this.savedMandates = savedMandates;
+    }
+
+    public java.util.Set<Deal> getSavedDeals() {
+        return savedDeals;
+    }
+
+    public void setSavedDeals(java.util.Set<Deal> savedDeals) {
+        this.savedDeals = savedDeals;
     }
 }

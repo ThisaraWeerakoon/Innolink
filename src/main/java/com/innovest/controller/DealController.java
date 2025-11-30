@@ -50,4 +50,28 @@ public class DealController {
     public ResponseEntity<PrivateDealDTO> getPrivateDeal(@PathVariable UUID id, @RequestParam UUID userId) {
         return ResponseEntity.ok(dealService.getPrivateDeal(id, userId));
     }
+    @GetMapping("/deals")
+    public ResponseEntity<List<com.innovest.dto.DealDTO>> getAllActiveDeals(@RequestParam(required = false) String sortBy) {
+        return ResponseEntity.ok(dealService.getAllActiveDeals(sortBy));
+    }
+
+    @PostMapping("/deals/{id}/save")
+    public ResponseEntity<Void> saveDeal(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
+        com.innovest.security.CustomUserDetails userDetails = (com.innovest.security.CustomUserDetails) authentication.getPrincipal();
+        dealService.saveDeal(userDetails.getId(), id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/deals/{id}/save")
+    public ResponseEntity<Void> unsaveDeal(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
+        com.innovest.security.CustomUserDetails userDetails = (com.innovest.security.CustomUserDetails) authentication.getPrincipal();
+        dealService.unsaveDeal(userDetails.getId(), id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/deals/saved")
+    public ResponseEntity<java.util.Set<com.innovest.dto.DealDTO>> getSavedDeals(org.springframework.security.core.Authentication authentication) {
+        com.innovest.security.CustomUserDetails userDetails = (com.innovest.security.CustomUserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(dealService.getSavedDeals(userDetails.getId()));
+    }
 }

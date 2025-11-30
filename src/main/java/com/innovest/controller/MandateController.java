@@ -24,6 +24,11 @@ public class MandateController {
         return ResponseEntity.ok(mandateService.getAllMandates(sortBy));
     }
 
+    @PostMapping
+    public ResponseEntity<MandateDTO> createMandate(@RequestBody MandateDTO mandateDTO, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(mandateService.createMandate(mandateDTO, userDetails.getId()));
+    }
+
     @PostMapping("/{id}/save")
     public ResponseEntity<Void> saveMandate(@PathVariable UUID id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         mandateService.saveMandate(userDetails.getId(), id);

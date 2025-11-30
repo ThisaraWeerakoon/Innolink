@@ -137,4 +137,62 @@ public class DealService {
 
         return dealMapper.toPrivateDto(deal, documentDTOs);
     }
+    public List<DealDTO> getAllActiveDeals(String sortBy) {
+        List<Deal> deals;
+        if ("recent".equals(sortBy)) {
+            deals = dealRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        } else {
+            deals = dealRepository.findAll();
+        }
+        
+        return deals.stream()
+                .filter(deal -> deal.getStatus() == DealStatus.ACTIVE)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void saveDeal(UUID userId, UUID dealId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        user.getSavedDeals().add(deal);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void unsaveDeal(UUID userId, UUID dealId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        user.getSavedDeals().remove(deal);
+        userRepository.save(user);
+    }
+
+    public java.util.Set<DealDTO> getSavedDeals(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        return user.getSavedDeals().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toSet());
+    }
+
+    private DealDTO convertToDTO(Deal deal) {
+        DealDTO dto = new DealDTO();
+        dto.setId(deal.getId());
+        dto.setTitle(deal.getTitle());
+        dto.setTeaserSummary(deal.getTeaserSummary());
+        dto.setTargetAmount(deal.getTargetAmount());
+        dto.setIndustry(deal.getIndustry());
+        dto.setStatus(deal.getStatus());
+        dto.setCreatedAt(deal.getCreatedAt());
+        dto.setInnovatorId(deal.getInnovator().getId());
+        dto.setInnovatorName(deal.getInnovator().getEmail());
+        return dto;
+    }
 }

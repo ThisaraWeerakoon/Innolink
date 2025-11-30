@@ -28,36 +28,50 @@ const InvestorDashboard = () => {
     const fetchDeals = async () => {
         setLoading(true);
         try {
+            // Always fetch saved deals to check status
+            const savedResponse = await api.get('/deals/saved');
+            const savedIds = new Set(savedResponse.data.map(d => d.id));
+            setSavedDealIds(savedIds);
+
             if (activeTab === 'most_recent') {
-                // Fetch real data for most recent
-                const response = await api.get('/investor/deals');
+                const response = await api.get('/deals?sortBy=recent');
                 setDeals(response.data);
             } else if (activeTab === 'best_matches') {
-                // Simulate API call
-                setTimeout(() => setDeals(dummyBestMatches), 500);
+                // Fetch all active deals for now
+                const response = await api.get('/deals');
+                setDeals(response.data);
             } else if (activeTab === 'saved_deals') {
-                // Simulate API call
-                setTimeout(() => setDeals(dummySavedDeals), 500);
-                setSavedDealIds(new Set(dummySavedDeals.map(d => d.id)));
+                setDeals(savedResponse.data);
             }
         } catch (error) {
             console.error("Failed to fetch deals:", error);
-            // Fallback to empty list or error state
             setDeals([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleSave = (dealId) => {
-        const newSaved = new Set(savedDealIds);
-        if (newSaved.has(dealId)) {
-            newSaved.delete(dealId);
-        } else {
-            newSaved.add(dealId);
+    const toggleSave = async (dealId) => {
+        try {
+            if (savedDealIds.has(dealId)) {
+                await api.delete(`/deals/${dealId}/save`);
+                const newSaved = new Set(savedDealIds);
+                newSaved.delete(dealId);
+                setSavedDealIds(newSaved);
+
+                // If on saved tab, remove from list
+                if (activeTab === 'saved_deals') {
+                    setDeals(prev => prev.filter(d => d.id !== dealId));
+                }
+            } else {
+                await api.post(`/deals/${dealId}/save`);
+                const newSaved = new Set(savedDealIds);
+                newSaved.add(dealId);
+                setSavedDealIds(newSaved);
+            }
+        } catch (error) {
+            console.error("Failed to toggle save:", error);
         }
-        setSavedDealIds(newSaved);
-        // In a real app, you would call an API here
     };
 
     return (

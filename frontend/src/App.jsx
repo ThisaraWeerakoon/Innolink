@@ -6,7 +6,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminVerify from './pages/AdminVerify';
-import Marketplace from './pages/Marketplace';
+import CreateMandate from './pages/CreateMandate';
+import InvestorDashboard from './pages/InvestorDashboard';
 import Dashboard from './pages/Dashboard';
 import CreateDeal from './pages/CreateDeal';
 import DealRoom from './pages/DealRoom';
@@ -34,7 +35,8 @@ function App() {
 
           {/* Investor Routes */}
           <Route element={<ProtectedRoute allowedRoles={['INVESTOR', 'ADMIN']} />}>
-            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/marketplace" element={<InvestorDashboard />} />
+            <Route path="/create-mandate" element={<CreateMandate />} />
           </Route>
 
           {/* Shared Authenticated Routes */}

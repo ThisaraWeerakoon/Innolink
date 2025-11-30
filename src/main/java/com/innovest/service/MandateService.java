@@ -56,6 +56,26 @@ public class MandateService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public MandateDTO createMandate(MandateDTO dto, UUID investorId) {
+        User investor = userRepository.findById(investorId)
+                .orElseThrow(() -> new RuntimeException("Investor not found"));
+
+        Mandate mandate = new Mandate();
+        mandate.setTitle(dto.getTitle());
+        mandate.setDescription(dto.getDescription());
+        mandate.setTargetIndustry(dto.getTargetIndustry());
+        mandate.setStagePreference(dto.getStagePreference());
+        mandate.setMinTicketSize(dto.getMinTicketSize());
+        mandate.setMaxTicketSize(dto.getMaxTicketSize());
+        mandate.setGeography(dto.getGeography());
+        mandate.setCurrency(dto.getCurrency());
+        mandate.setInvestor(investor);
+        
+        Mandate savedMandate = mandateRepository.save(mandate);
+        return convertToDTO(savedMandate);
+    }
+
     public Set<MandateDTO> getSavedMandates(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
