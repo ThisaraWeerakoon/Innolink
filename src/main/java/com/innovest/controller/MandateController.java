@@ -54,9 +54,11 @@ public class MandateController {
     }
 
     @GetMapping("/{id}/interest")
-    public ResponseEntity<Boolean> checkInterest(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<com.innovest.dto.MandateInterestDTO> checkInterest(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return ResponseEntity.ok(mandateService.checkInterest(id, userDetails.getId()));
+        return mandateService.checkInterest(id, userDetails.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping("/{id}/interests")

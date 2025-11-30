@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Target, DollarSign, Send } from 'lucide-react';
+import { Heart, Target, DollarSign, Send, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
     const { user, api } = useAuth();
-    const [interestSent, setInterestSent] = useState(false);
+    const [interestStatus, setInterestStatus] = useState(null);
     const [loadingInterest, setLoadingInterest] = useState(false);
 
     useEffect(() => {
@@ -17,7 +17,9 @@ const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
     const checkInterest = async () => {
         try {
             const response = await api.get(`/mandates/${mandate.id}/interest`);
-            setInterestSent(response.data);
+            if (response.status === 200 && response.data) {
+                setInterestStatus(response.data.status);
+            }
         } catch (error) {
             console.error("Failed to check interest", error);
         }
@@ -27,12 +29,28 @@ const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
         setLoadingInterest(true);
         try {
             await api.post(`/mandates/${mandate.id}/interest`);
-            setInterestSent(true);
+            setInterestStatus('PENDING');
         } catch (error) {
             console.error("Failed to express interest", error);
             alert("Failed to express interest. Please try again.");
         } finally {
             setLoadingInterest(false);
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'CONTACTED': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'REJECTED': return 'bg-red-100 text-red-700 border-red-200';
+            default: return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        }
+    };
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'CONTACTED': return 'Contacted';
+            case 'REJECTED': return 'Rejected';
+            default: return 'Interest Sent';
         }
     };
 
@@ -73,21 +91,25 @@ const MandateCard = ({ mandate, isSaved, onToggleSave }) => {
 
             {user && user.role === 'INNOVATOR' && (
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                    <button
-                        onClick={handleExpressInterest}
-                        disabled={interestSent || loadingInterest}
-                        className={`w-full flex items-center justify-center py-2 px-4 rounded text-sm font-medium transition-colors ${interestSent
-                                ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                                : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            }`}
-                    >
-                        {loadingInterest ? (
-                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
-                        ) : (
-                            <Send className="w-4 h-4 mr-2" />
-                        )}
-                        {interestSent ? 'Interest Sent' : 'Express Interest'}
-                    </button>
+                    {interestStatus ? (
+                        <div className={`w-full flex items-center justify-center py-2 px-4 rounded text-sm font-medium border ${getStatusColor(interestStatus)}`}>
+                            <Check className="w-4 h-4 mr-2" />
+                            {getStatusText(interestStatus)}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleExpressInterest}
+                            disabled={loadingInterest}
+                            className="w-full flex items-center justify-center py-2 px-4 rounded text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                        >
+                            {loadingInterest ? (
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
+                            ) : (
+                                <Send className="w-4 h-4 mr-2" />
+                            )}
+                            Express Interest
+                        </button>
+                    )}
                 </div>
             )}
         </div>

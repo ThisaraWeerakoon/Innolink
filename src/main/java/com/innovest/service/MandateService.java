@@ -89,13 +89,14 @@ public class MandateService {
 
     private final com.innovest.repository.MandateInterestRepository mandateInterestRepository;
 
-    public boolean checkInterest(UUID mandateId, UUID innovatorId) {
-        return mandateInterestRepository.findByMandateIdAndInnovatorId(mandateId, innovatorId).isPresent();
+    public java.util.Optional<com.innovest.dto.MandateInterestDTO> checkInterest(UUID mandateId, UUID innovatorId) {
+        return mandateInterestRepository.findByMandateIdAndInnovatorId(mandateId, innovatorId)
+                .map(this::convertToInterestDTO);
     }
 
     @Transactional
     public void expressInterest(UUID mandateId, UUID innovatorId) {
-        if (checkInterest(mandateId, innovatorId)) {
+        if (checkInterest(mandateId, innovatorId).isPresent()) {
             return; // Already interested
         }
 
