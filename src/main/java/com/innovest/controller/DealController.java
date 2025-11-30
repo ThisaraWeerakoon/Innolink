@@ -51,8 +51,8 @@ public class DealController {
         return ResponseEntity.ok(dealService.getPrivateDeal(id, userId));
     }
     @GetMapping("/deals")
-    public ResponseEntity<List<com.innovest.dto.DealDTO>> getAllActiveDeals(@RequestParam(required = false) String sortBy) {
-        return ResponseEntity.ok(dealService.getAllActiveDeals(sortBy));
+    public ResponseEntity<List<com.innovest.dto.DealDTO>> getAllActiveDeals(@RequestParam(required = false) String sortBy, @RequestParam(required = false) UUID innovatorId) {
+        return ResponseEntity.ok(dealService.getAllActiveDeals(sortBy, innovatorId));
     }
 
     @PostMapping("/deals/{id}/save")

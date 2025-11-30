@@ -4,17 +4,17 @@ import { Link } from 'react-router-dom';
 const DealCard = ({ deal, isSaved, onToggleSave }) => {
     return (
         <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col h-full">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start mb-4">
                 <div>
                     <h3 className="font-bold text-lg text-slate-900">{deal.title}</h3>
-                    <p className="text-sm text-slate-500 mt-1">{deal.industry}</p>
+                    <Link to={`/innovator/${deal.innovatorId}`} className="text-sm text-slate-500 hover:text-emerald-600 hover:underline">
+                        {deal.innovatorName}
+                    </Link>
                 </div>
-                <button
-                    onClick={() => onToggleSave(deal.id)}
-                    className={`p-2 rounded-full hover:bg-slate-100 ${isSaved ? 'text-red-500 fill-current' : 'text-slate-400'}`}
-                >
-                    <Heart className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} />
-                </button>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${deal.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
+                    }`}>
+                    {deal.status}
+                </span>
             </div>
 
             <p className="text-slate-600 text-sm mt-3 line-clamp-3 flex-grow">

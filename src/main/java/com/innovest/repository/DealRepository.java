@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface DealRepository extends JpaRepository<Deal, UUID> {
     List<Deal> findByStatus(DealStatus status);
     List<Deal> findByInnovatorId(UUID innovatorId);
+    List<Deal> findByInnovatorIdAndStatus(UUID innovatorId, DealStatus status);
 }

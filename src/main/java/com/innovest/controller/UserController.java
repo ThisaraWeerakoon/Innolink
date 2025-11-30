@@ -71,6 +71,31 @@ public class UserController {
         return ResponseEntity.ok(convertToDTO(user));
     }
 
+    @GetMapping("/innovator/{id}")
+    public ResponseEntity<UserDTO> getInnovatorPublicProfile(@PathVariable java.util.UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (user.getRole() != com.innovest.domain.UserRole.INNOVATOR) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Return only public info
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail()); // Or hide email if preferred
+        
+        if (user.getInnovatorProfile() != null) {
+            com.innovest.domain.InnovatorProfile profile = user.getInnovatorProfile();
+            dto.setCompanyName(profile.getCompanyName());
+            dto.setIndustry(profile.getIndustry());
+            dto.setFundingStage(profile.getFundingStage());
+            dto.setLinkedinUrl(profile.getLinkedinUrl());
+        }
+        
+        return ResponseEntity.ok(dto);
+    }
+
     private UserDTO convertToDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());

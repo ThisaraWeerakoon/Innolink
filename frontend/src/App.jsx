@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import CreateDeal from './pages/CreateDeal';
 import DealRoom from './pages/DealRoom';
 import Profile from './pages/Profile';
+import InnovatorPublicProfile from './pages/InnovatorPublicProfile';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/listing/:id" element={<DealRoom />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/innovator/:id" element={<InnovatorPublicProfile />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -137,9 +137,11 @@ public class DealService {
 
         return dealMapper.toPrivateDto(deal, documentDTOs);
     }
-    public List<DealDTO> getAllActiveDeals(String sortBy) {
+    public List<DealDTO> getAllActiveDeals(String sortBy, UUID innovatorId) {
         List<Deal> deals;
-        if ("recent".equals(sortBy)) {
+        if (innovatorId != null) {
+            deals = dealRepository.findByInnovatorIdAndStatus(innovatorId, DealStatus.ACTIVE);
+        } else if ("recent".equals(sortBy)) {
             deals = dealRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         } else {
             deals = dealRepository.findAll();
@@ -192,7 +194,11 @@ public class DealService {
         dto.setStatus(deal.getStatus());
         dto.setCreatedAt(deal.getCreatedAt());
         dto.setInnovatorId(deal.getInnovator().getId());
-        dto.setInnovatorName(deal.getInnovator().getEmail());
+        if (deal.getInnovator().getInnovatorProfile() != null) {
+            dto.setInnovatorName(deal.getInnovator().getInnovatorProfile().getCompanyName());
+        } else {
+            dto.setInnovatorName(deal.getInnovator().getEmail());
+        }
         return dto;
     }
 }
