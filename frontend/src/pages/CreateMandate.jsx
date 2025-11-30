@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Target, Globe, DollarSign, Briefcase } from 'lucide-react';
+import { Plus, Target, Globe, DollarSign, Briefcase, Users, X, Check, Eye } from 'lucide-react';
 
 const CreateMandate = () => {
     const { user, api } = useAuth();
     const [mandates, setMandates] = useState([]);
+    const [selectedMandateId, setSelectedMandateId] = useState(null);
+    const [interests, setInterests] = useState([]);
+    const [loadingInterests, setLoadingInterests] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -28,6 +32,29 @@ const CreateMandate = () => {
             setMandates(response.data);
         } catch (error) {
             console.error("Failed to fetch mandates", error);
+        }
+    };
+
+    const fetchInterests = async (mandateId) => {
+        setLoadingInterests(true);
+        setSelectedMandateId(mandateId);
+        try {
+            const response = await api.get(`/mandates/${mandateId}/interests`);
+            setInterests(response.data);
+        } catch (error) {
+            console.error("Failed to fetch interests", error);
+            setInterests([]);
+        } finally {
+            setLoadingInterests(false);
+        }
+    };
+
+    const updateInterestStatus = async (interestId, status) => {
+        try {
+            await api.put(`/mandates/interests/${interestId}/status?status=${status}`);
+            setInterests(prev => prev.map(i => i.id === interestId ? { ...i, status } : i));
+        } catch (error) {
+            console.error("Failed to update interest status", error);
         }
     };
 
@@ -197,9 +224,18 @@ const CreateMandate = () => {
                                     <h3 className="text-lg font-bold text-slate-900">{mandate.title}</h3>
                                     <p className="text-sm text-slate-500">{new Date(mandate.createdAt).toLocaleDateString()}</p>
                                 </div>
-                                <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
-                                    {mandate.stagePreference}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => fetchInterests(mandate.id)}
+                                        className="flex items-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                                    >
+                                        <Users className="w-4 h-4 mr-1" />
+                                        View Interests
+                                    </button>
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
+                                        {mandate.stagePreference}
+                                    </span>
+                                </div>
                             </div>
                             <p className="text-slate-600 mb-4">{mandate.description}</p>
                             <div className="flex flex-wrap gap-4 text-sm text-slate-500">
@@ -216,6 +252,70 @@ const CreateMandate = () => {
                                     {mandate.geography}
                                 </div>
                             </div>
+
+                            {/* Interests Section */}
+                            {selectedMandateId === mandate.id && (
+                                <div className="mt-6 pt-6 border-t border-slate-100">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="font-semibold text-slate-900">Interested Innovators</h4>
+                                        <button onClick={() => setSelectedMandateId(null)} className="text-slate-400 hover:text-slate-600">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {loadingInterests ? (
+                                        <div className="text-center py-4 text-slate-500">Loading interests...</div>
+                                    ) : interests.length === 0 ? (
+                                        <div className="text-center py-4 text-slate-500 italic">No interests expressed yet.</div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {interests.map(interest => (
+                                                <div key={interest.id} className="flex items-center justify-between bg-slate-50 p-3 rounded">
+                                                    <div>
+                                                        <Link to={`/innovator/${interest.innovatorId}`} className="font-medium text-slate-900 hover:text-emerald-600 hover:underline">
+                                                            {interest.innovatorName}
+                                                        </Link>
+                                                        <div className="text-xs text-slate-500 mt-1">
+                                                            Status: <span className={`font-medium ${interest.status === 'CONTACTED' ? 'text-blue-600' :
+                                                                    interest.status === 'REJECTED' ? 'text-red-600' : 'text-slate-600'
+                                                                }`}>{interest.status}</span>
+                                                            <span className="mx-2">•</span>
+                                                            {new Date(interest.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        {interest.status !== 'CONTACTED' && interest.status !== 'REJECTED' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => updateInterestStatus(interest.id, 'CONTACTED')}
+                                                                    className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                                                                    title="Mark as Contacted"
+                                                                >
+                                                                    <Check className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => updateInterestStatus(interest.id, 'REJECTED')}
+                                                                    className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                                    title="Reject"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        <Link
+                                                            to={`/innovator/${interest.innovatorId}`}
+                                                            className="p-1.5 bg-slate-200 text-slate-600 rounded hover:bg-slate-300"
+                                                            title="View Profile"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))
                 )}

@@ -112,6 +112,39 @@ public class MandateService {
         mandateInterestRepository.save(interest);
     }
 
+    public List<com.innovest.dto.MandateInterestDTO> getInterestsForMandate(UUID mandateId) {
+        return mandateInterestRepository.findByMandateId(mandateId).stream()
+                .map(this::convertToInterestDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateInterestStatus(UUID interestId, String status) {
+        com.innovest.domain.MandateInterest interest = mandateInterestRepository.findById(interestId)
+                .orElseThrow(() -> new RuntimeException("Interest not found"));
+        interest.setStatus(status);
+        mandateInterestRepository.save(interest);
+    }
+
+    private com.innovest.dto.MandateInterestDTO convertToInterestDTO(com.innovest.domain.MandateInterest interest) {
+        com.innovest.dto.MandateInterestDTO dto = new com.innovest.dto.MandateInterestDTO();
+        dto.setId(interest.getId());
+        dto.setMandateId(interest.getMandate().getId());
+        dto.setInnovatorId(interest.getInnovator().getId());
+        dto.setInnovatorEmail(interest.getInnovator().getEmail());
+        dto.setStatus(interest.getStatus());
+        dto.setCreatedAt(interest.getCreatedAt());
+        
+        if (interest.getInnovator().getInnovatorProfile() != null) {
+            dto.setInnovatorName(interest.getInnovator().getInnovatorProfile().getCompanyName());
+            dto.setInnovatorLinkedinUrl(interest.getInnovator().getInnovatorProfile().getLinkedinUrl());
+        } else {
+            dto.setInnovatorName(interest.getInnovator().getEmail());
+        }
+        
+        return dto;
+    }
+
     private MandateDTO convertToDTO(Mandate mandate) {
         MandateDTO dto = new MandateDTO();
         dto.setId(mandate.getId());

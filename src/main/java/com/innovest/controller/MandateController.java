@@ -58,4 +58,15 @@ public class MandateController {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(mandateService.checkInterest(id, userDetails.getId()));
     }
+
+    @GetMapping("/{id}/interests")
+    public ResponseEntity<List<com.innovest.dto.MandateInterestDTO>> getInterests(@PathVariable UUID id) {
+        return ResponseEntity.ok(mandateService.getInterestsForMandate(id));
+    }
+
+    @PutMapping("/interests/{interestId}/status")
+    public ResponseEntity<Void> updateInterestStatus(@PathVariable UUID interestId, @RequestParam String status) {
+        mandateService.updateInterestStatus(interestId, status);
+        return ResponseEntity.ok().build();
+    }
 }
