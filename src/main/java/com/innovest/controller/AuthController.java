@@ -36,11 +36,35 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<User> verifyUser(Authentication authentication) {
+    public ResponseEntity<com.innovest.dto.UserDTO> verifyUser(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
             return ResponseEntity.status(401).build();
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return ResponseEntity.ok(userDetails.getUser());
+        return ResponseEntity.ok(convertToDTO(userDetails.getUser()));
+    }
+
+    private com.innovest.dto.UserDTO convertToDTO(User user) {
+        com.innovest.dto.UserDTO dto = new com.innovest.dto.UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole().name());
+        dto.setVerified(user.isVerified());
+
+        if (user.getRole() == com.innovest.domain.UserRole.INNOVATOR && user.getInnovatorProfile() != null) {
+            com.innovest.domain.InnovatorProfile profile = user.getInnovatorProfile();
+            dto.setCompanyName(profile.getCompanyName());
+            dto.setIndustry(profile.getIndustry());
+            dto.setFundingStage(profile.getFundingStage());
+            dto.setLinkedinUrl(profile.getLinkedinUrl());
+            dto.setFeeAgreementSigned(profile.isFeeAgreementSigned());
+        } else if (user.getRole() == com.innovest.domain.UserRole.INVESTOR && user.getInvestorProfile() != null) {
+            com.innovest.domain.InvestorProfile profile = user.getInvestorProfile();
+            dto.setMinTicketSize(profile.getMinTicketSize());
+            dto.setMaxTicketSize(profile.getMaxTicketSize());
+            dto.setInterestedIndustries(profile.getInterestedIndustries());
+            dto.setAccreditationDocUrl(profile.getAccreditationDocUrl());
+        }
+        return dto;
     }
 }

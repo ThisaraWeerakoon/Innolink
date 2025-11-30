@@ -68,12 +68,12 @@ const Navbar = () => {
                             <Bell className="h-6 w-6" />
                         </button>
                         <div className="ml-3 relative flex items-center gap-2">
-                            <div className="flex items-center">
+                            <Link to="/profile" className="flex items-center hover:bg-slate-50 rounded-full py-1 px-2 transition-colors">
                                 <span className="text-sm font-medium text-slate-700 mr-2">{user.email}</span>
                                 <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
                                     <User className="h-5 w-5 text-slate-500" />
                                 </div>
-                            </div>
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="ml-2 p-1 rounded-full text-slate-400 hover:text-red-500 focus:outline-none"

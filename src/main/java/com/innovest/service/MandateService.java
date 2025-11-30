@@ -21,9 +21,11 @@ public class MandateService {
     private final MandateRepository mandateRepository;
     private final UserRepository userRepository;
 
-    public List<MandateDTO> getAllMandates(String sortBy) {
+    public List<MandateDTO> getAllMandates(String sortBy, UUID investorId) {
         List<Mandate> mandates;
-        if ("recent".equals(sortBy)) {
+        if (investorId != null) {
+            mandates = mandateRepository.findByInvestorId(investorId);
+        } else if ("recent".equals(sortBy)) {
             mandates = mandateRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         } else {
             mandates = mandateRepository.findAll();

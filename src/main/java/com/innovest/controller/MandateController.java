@@ -20,8 +20,8 @@ public class MandateController {
     private final MandateService mandateService;
 
     @GetMapping
-    public ResponseEntity<List<MandateDTO>> getAllMandates(@RequestParam(required = false) String sortBy) {
-        return ResponseEntity.ok(mandateService.getAllMandates(sortBy));
+    public ResponseEntity<List<MandateDTO>> getAllMandates(@RequestParam(required = false) String sortBy, @RequestParam(required = false) UUID investorId) {
+        return ResponseEntity.ok(mandateService.getAllMandates(sortBy, investorId));
     }
 
     @PostMapping

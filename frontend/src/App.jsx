@@ -11,6 +11,7 @@ import InvestorDashboard from './pages/InvestorDashboard';
 import Dashboard from './pages/Dashboard';
 import CreateDeal from './pages/CreateDeal';
 import DealRoom from './pages/DealRoom';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['INVESTOR', 'INNOVATOR', 'ADMIN']} />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/listing/:id" element={<DealRoom />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Routes>
       </BrowserRouter>

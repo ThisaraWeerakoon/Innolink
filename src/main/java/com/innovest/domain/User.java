@@ -37,6 +37,12 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private InnovatorProfile innovatorProfile;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private InvestorProfile investorProfile;
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -125,5 +131,21 @@ public class User {
 
     public void setSavedDeals(java.util.Set<Deal> savedDeals) {
         this.savedDeals = savedDeals;
+    }
+
+    public InnovatorProfile getInnovatorProfile() {
+        return innovatorProfile;
+    }
+
+    public void setInnovatorProfile(InnovatorProfile innovatorProfile) {
+        this.innovatorProfile = innovatorProfile;
+    }
+
+    public InvestorProfile getInvestorProfile() {
+        return investorProfile;
+    }
+
+    public void setInvestorProfile(InvestorProfile investorProfile) {
+        this.investorProfile = investorProfile;
     }
 }
