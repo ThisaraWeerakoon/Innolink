@@ -11,10 +11,18 @@ const DealCard = ({ deal, isSaved, onToggleSave }) => {
                         {deal.innovatorName}
                     </Link>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${deal.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
-                    }`}>
-                    {deal.status}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${deal.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
+                        }`}>
+                        {deal.status}
+                    </span>
+                    <button
+                        onClick={() => onToggleSave(deal.id)}
+                        className={`p-2 rounded-full hover:bg-slate-100 ${isSaved ? 'text-red-500 fill-current' : 'text-slate-400'}`}
+                    >
+                        <Heart className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} />
+                    </button>
+                </div>
             </div>
 
             <p className="text-slate-600 text-sm mt-3 line-clamp-3 flex-grow">
