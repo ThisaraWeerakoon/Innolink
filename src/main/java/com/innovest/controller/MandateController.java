@@ -45,4 +45,17 @@ public class MandateController {
     public ResponseEntity<Set<MandateDTO>> getSavedMandates(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(mandateService.getSavedMandates(userDetails.getId()));
     }
+
+    @PostMapping("/{id}/interest")
+    public ResponseEntity<Void> expressInterest(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        mandateService.expressInterest(id, userDetails.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/interest")
+    public ResponseEntity<Boolean> checkInterest(@PathVariable UUID id, org.springframework.security.core.Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(mandateService.checkInterest(id, userDetails.getId()));
+    }
 }

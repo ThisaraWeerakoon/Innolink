@@ -87,6 +87,31 @@ public class MandateService {
                 .collect(Collectors.toSet());
     }
 
+    private final com.innovest.repository.MandateInterestRepository mandateInterestRepository;
+
+    public boolean checkInterest(UUID mandateId, UUID innovatorId) {
+        return mandateInterestRepository.findByMandateIdAndInnovatorId(mandateId, innovatorId).isPresent();
+    }
+
+    @Transactional
+    public void expressInterest(UUID mandateId, UUID innovatorId) {
+        if (checkInterest(mandateId, innovatorId)) {
+            return; // Already interested
+        }
+
+        Mandate mandate = mandateRepository.findById(mandateId)
+                .orElseThrow(() -> new RuntimeException("Mandate not found"));
+        User innovator = userRepository.findById(innovatorId)
+                .orElseThrow(() -> new RuntimeException("Innovator not found"));
+
+        com.innovest.domain.MandateInterest interest = new com.innovest.domain.MandateInterest();
+        interest.setMandate(mandate);
+        interest.setInnovator(innovator);
+        interest.setStatus("PENDING");
+        
+        mandateInterestRepository.save(interest);
+    }
+
     private MandateDTO convertToDTO(Mandate mandate) {
         MandateDTO dto = new MandateDTO();
         dto.setId(mandate.getId());
