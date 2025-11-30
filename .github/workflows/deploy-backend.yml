@@ -3,7 +3,7 @@ name: Deploy Backend to Azure
 on:
   push:
     branches:
-      - thisara_dev
+      - main
   workflow_dispatch:
 
 jobs:
