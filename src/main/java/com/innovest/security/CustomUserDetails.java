@@ -11,16 +11,22 @@ import java.util.UUID;
 
 public class CustomUserDetails implements UserDetails {
 
+    private final User user;
     private final UUID id;
     private final String email;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(User user) {
+        this.user = user;
         this.id = user.getId();
         this.email = user.getEmail();
         this.password = user.getPasswordHash();
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public UUID getId() {
