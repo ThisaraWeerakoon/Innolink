@@ -55,6 +55,19 @@ public class AccessRequestService {
     }
 
     @Transactional
+    public AccessRequest rejectRequest(UUID requestId, UUID innovatorId) {
+        AccessRequest request = accessRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (!request.getDeal().getInnovator().getId().equals(innovatorId)) {
+            throw new RuntimeException("Not authorized to reject this request");
+        }
+
+        request.setStatus(RequestStatus.DENIED);
+        return accessRequestRepository.save(request);
+    }
+
+    @Transactional
     public AccessRequest signNda(UUID requestId, UUID userId) {
         AccessRequest request = accessRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));

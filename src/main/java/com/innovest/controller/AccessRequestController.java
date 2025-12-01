@@ -27,6 +27,11 @@ public class AccessRequestController {
         return ResponseEntity.ok(accessRequestService.approveRequest(id, userId));
     }
 
+    @PutMapping("/innovator/requests/{id}/reject")
+    public ResponseEntity<AccessRequest> rejectRequest(@PathVariable UUID id, @RequestParam UUID userId) {
+        return ResponseEntity.ok(accessRequestService.rejectRequest(id, userId));
+    }
+
     @PostMapping("/investor/requests/{id}/sign-nda")
     public ResponseEntity<AccessRequest> signNda(@PathVariable UUID id, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.signNda(id, userId));

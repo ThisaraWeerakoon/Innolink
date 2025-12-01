@@ -15,6 +15,7 @@ public class DealDocument {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne
     @JoinColumn(name = "deal_id", nullable = false)
     private Deal deal;

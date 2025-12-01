@@ -40,6 +40,9 @@ public class Deal {
     @Column(name = "updated_at")
     private java.time.LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private java.util.List<DealDocument> documents;
+
     public UUID getId() {
         return id;
     }
@@ -110,5 +113,13 @@ public class Deal {
 
     public void setUpdatedAt(java.time.LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.util.List<DealDocument> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(java.util.List<DealDocument> documents) {
+        this.documents = documents;
     }
 }

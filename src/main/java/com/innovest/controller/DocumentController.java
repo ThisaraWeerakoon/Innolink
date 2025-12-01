@@ -56,7 +56,9 @@ public class DocumentController {
             if ("mock".equals(document.getFileUrl())) {
                  throw new RuntimeException("Mock file download not fully implemented for demo without real files.");
             } else {
-                 fileStream = new URL(document.getFileUrl()).openStream();
+                 // Use StorageService to load the file
+                 Resource fileResource = storageService.load(document.getFileUrl());
+                 fileStream = fileResource.getInputStream();
             }
 
             byte[] watermarkedPdf = pdfWatermarkService.watermarkPdf(fileStream, user.getEmail());
@@ -67,6 +69,31 @@ public class DocumentController {
                     .contentLength(watermarkedPdf.length)
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+    @Autowired
+    private com.innovest.service.StorageService storageService;
+
+    @org.springframework.web.bind.annotation.PostMapping("/upload")
+    public ResponseEntity<?> uploadDocument(@RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+                                            @RequestParam("dealId") UUID dealId,
+                                            @RequestParam("type") com.innovest.domain.DocType type,
+                                            @RequestParam("isPrivate") boolean isPrivate,
+                                            @RequestParam("userId") UUID userId) {
+        try {
+            String fileUrl = storageService.store(file, "deal-documents");
+            
+            DealDocument document = new DealDocument();
+            document.setFileUrl(fileUrl);
+            document.setFileType(type);
+            document.setPrivate(isPrivate);
+            
+            DealDocument savedDoc = dealService.addDocumentToDeal(dealId, document, userId);
+            
+            return ResponseEntity.ok(savedDoc);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
