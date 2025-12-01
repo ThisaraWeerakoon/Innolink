@@ -56,7 +56,9 @@ public class DocumentController {
             if ("mock".equals(document.getFileUrl())) {
                  throw new RuntimeException("Mock file download not fully implemented for demo without real files.");
             } else {
-                 fileStream = new URL(document.getFileUrl()).openStream();
+                 // Use StorageService to load the file
+                 Resource fileResource = storageService.load(document.getFileUrl());
+                 fileStream = fileResource.getInputStream();
             }
 
             byte[] watermarkedPdf = pdfWatermarkService.watermarkPdf(fileStream, user.getEmail());

@@ -179,15 +179,29 @@ const DealRoom = () => {
                                                     <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors mr-3" />
                                                     <span className="font-medium text-slate-700">{doc.name}</span>
                                                 </div>
-                                                <a
-                                                    href={`https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net/api/documents/${doc.id}/download?userId=${user.id}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center"
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const response = await api.get(`/documents/${doc.id}/download?userId=${user.id}`, {
+                                                                responseType: 'blob',
+                                                            });
+                                                            const url = window.URL.createObjectURL(new Blob([response.data]));
+                                                            const link = document.createElement('a');
+                                                            link.href = url;
+                                                            link.setAttribute('download', `${doc.name || 'document'}.pdf`);
+                                                            document.body.appendChild(link);
+                                                            link.click();
+                                                            link.remove();
+                                                        } catch (error) {
+                                                            console.error("Download failed", error);
+                                                            alert("Failed to download document");
+                                                        }
+                                                    }}
+                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center cursor-pointer"
                                                 >
                                                     <Shield className="w-3 h-3 mr-1" />
                                                     Download Watermarked
-                                                </a>
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
