@@ -98,6 +98,7 @@ public class DealService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<Deal> getDealsByInnovator(UUID innovatorId) {
         return dealRepository.findByInnovatorId(innovatorId);
     }
@@ -198,6 +199,11 @@ public class DealService {
             dto.setInnovatorName(deal.getInnovator().getInnovatorProfile().getCompanyName());
         } else {
             dto.setInnovatorName(deal.getInnovator().getEmail());
+        }
+        if (deal.getDocuments() != null) {
+            dto.setDocuments(deal.getDocuments().stream()
+                    .map(dealMapper::toDocumentDto)
+                    .collect(Collectors.toList()));
         }
         return dto;
     }

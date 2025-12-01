@@ -16,4 +16,5 @@ public class DealDTO {
     private LocalDateTime createdAt;
     private String innovatorName;
     private UUID innovatorId;
+    private java.util.List<DealDocumentDTO> documents;
 }

@@ -198,6 +198,49 @@ const CreateDeal = () => {
                                         </div>
                                     )}
 
+                                    {/* Uploaded Documents Section */}
+                                    {deal.documents && deal.documents.length > 0 && (
+                                        <div className="mt-4 bg-slate-50 p-3 rounded-md border border-slate-200">
+                                            <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                                <MessageSquare className="w-4 h-4" /> Uploaded Documents
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {deal.documents.map(doc => (
+                                                    <div key={doc.id} className="flex justify-between items-center bg-white p-2 rounded border border-slate-200">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium text-slate-700">{doc.fileType}</span>
+                                                            <span className={`text-xs px-2 py-0.5 rounded ${doc.private ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                                                                {doc.private ? 'Private' : 'Public'}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const response = await api.get(`/documents/${doc.id}/download?userId=${user.id}`, {
+                                                                        responseType: 'blob',
+                                                                    });
+                                                                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                                                                    const link = document.createElement('a');
+                                                                    link.href = url;
+                                                                    link.setAttribute('download', `${doc.fileType || 'document'}.pdf`);
+                                                                    document.body.appendChild(link);
+                                                                    link.click();
+                                                                    link.remove();
+                                                                } catch (error) {
+                                                                    console.error("View failed", error);
+                                                                    alert("Failed to view document");
+                                                                }
+                                                            }}
+                                                            className="text-xs text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+                                                        >
+                                                            View
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="mt-4 flex gap-2">
                                         {deal.status === 'DRAFT' && (
                                             <button
@@ -219,7 +262,7 @@ const CreateDeal = () => {
 
                                     {expandedDealId === deal.id && (
                                         <div className="mt-4 border-t pt-4">
-                                            <DocumentUpload dealId={deal.id} onUploadSuccess={() => setExpandedDealId(null)} />
+                                            <DocumentUpload dealId={deal.id} onUploadSuccess={() => { setExpandedDealId(null); fetchListings(); }} />
                                         </div>
                                     )}
                                 </div>
