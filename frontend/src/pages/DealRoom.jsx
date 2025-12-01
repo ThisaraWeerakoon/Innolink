@@ -187,8 +187,6 @@ const DealRoom = () => {
                                                 >
                                                     <Shield className="w-3 h-3 mr-1" />
                                                     Download Watermarked
-                                                    <Shield className="w-3 h-3 mr-1" />
-                                                    Download Watermarked
                                                 </a>
                                             </div>
                                         ))}
