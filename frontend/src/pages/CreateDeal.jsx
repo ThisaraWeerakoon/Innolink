@@ -170,8 +170,11 @@ const CreateDeal = () => {
                                             <div className="space-y-2">
                                                 {dealRequests.map(req => (
                                                     <div key={req.id} className="flex justify-between items-center bg-white p-2 rounded border border-blue-100">
-                                                        <span className="text-sm text-slate-700">
-                                                            <span className="font-medium">{req.investor.email}</span> requested access
+                                                        <span className="text-sm text-slate-700 flex items-center gap-1">
+                                                            <a href={`/investor/${req.investor.id}`} className="font-medium text-blue-600 hover:underline flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                                                                {req.investor.email}
+                                                            </a>
+                                                            requested access
                                                         </span>
                                                         <div className="flex gap-2">
                                                             <button
