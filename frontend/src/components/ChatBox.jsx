@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Client } from '@stomp/stompjs';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Client } from '@stomp/stompjs';
 
-const ChatBox = ({ dealId, userId, otherUserName }) => {
+const ChatBox = ({ dealId, userId }) => {
     const { api } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
@@ -22,8 +22,9 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
         fetchMessages();
 
         // WebSocket Connection
-        const apiUrl = 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net';
-        const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+        const baseUrl = apiUrl.replace(/\/api$/, '');
+        const wsUrl = baseUrl.replace(/^http/, 'ws') + '/ws';
 
         const client = new Client({
             brokerURL: wsUrl,
@@ -62,6 +63,7 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
                 }),
             });
             setNewMessage("");
+            // No need to fetchMessages(), the subscription will handle the update
         } else {
             console.error("WebSocket is not connected");
         }
@@ -69,11 +71,6 @@ const ChatBox = ({ dealId, userId, otherUserName }) => {
 
     return (
         <div className="flex flex-col h-full">
-            {otherUserName && (
-                <div className="p-3 border-b border-slate-200 bg-slate-50 font-medium text-slate-700">
-                    Chat with {otherUserName}
-                </div>
-            )}
             <div className="flex-1 overflow-y-auto space-y-3 p-2">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.sender.id === userId ? 'justify-end' : 'justify-start'}`}>

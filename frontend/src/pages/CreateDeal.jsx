@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { MessageSquare, Upload, ChevronDown, ChevronUp, UserCheck, X, Check } from 'lucide-react';
 import DocumentUpload from '../components/DocumentUpload';
+import ChatBox from '../components/ChatBox';
 
 const CreateDeal = () => {
     const { user, api } = useAuth();
@@ -263,6 +264,23 @@ const CreateDeal = () => {
                                     {expandedDealId === deal.id && (
                                         <div className="mt-4 border-t pt-4">
                                             <DocumentUpload dealId={deal.id} onUploadSuccess={() => { setExpandedDealId(null); fetchListings(); }} />
+                                        </div>
+                                    )}
+
+                                    {/* Active Conversations Section */}
+                                    {requests.filter(req => req.deal.id === deal.id && req.status === 'APPROVED' && req.introRequested).length > 0 && (
+                                        <div className="mt-4 bg-emerald-50 p-3 rounded-md border border-emerald-100">
+                                            <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+                                                <MessageSquare className="w-4 h-4" /> Active Conversations
+                                            </h4>
+                                            <div className="space-y-4">
+                                                {/* Since chat is currently per-deal (group chat), we show one chat box if there are any interested investors. 
+                                                    Ideally, this should be per-investor if the backend supported private channels. 
+                                                    For now, we show the Deal Room Chat. */}
+                                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm h-64 flex flex-col">
+                                                    <ChatBox dealId={deal.id} userId={user.id} />
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
