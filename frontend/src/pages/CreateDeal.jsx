@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import DocumentUpload from '../components/DocumentUpload';
 
 const CreateDeal = () => {
     const { user, api } = useAuth();
@@ -9,8 +10,7 @@ const CreateDeal = () => {
     const [industry, setIndustry] = useState('');
     const [goal, setGoal] = useState('');
     const [teaser, setTeaser] = useState('');
-    const [docUrl, setDocUrl] = useState('');
-    const [docType, setDocType] = useState('PITCH_DECK');
+    const [expandedDealId, setExpandedDealId] = useState(null);
 
     useEffect(() => {
         if (user) {
@@ -41,31 +41,31 @@ const CreateDeal = () => {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            const dealResponse = await api.post(`/innovator/deals?userId=${user.id}`, {
+            await api.post(`/innovator/deals?userId=${user.id}`, {
                 title,
                 industry,
                 targetAmount: parseFloat(goal),
                 teaserSummary: teaser,
             });
 
-            if (docUrl) {
-                await api.post(`/innovator/deals/${dealResponse.data.id}/documents?userId=${user.id}`, {
-                    fileUrl: docUrl,
-                    fileType: docType,
-                    isPrivate: true
-                });
-            }
-            alert('Listing created!');
+            alert('Listing created! You can now upload documents below.');
             // Reset form
             setTitle('');
             setIndustry('');
             setGoal('');
             setTeaser('');
-            setDocUrl('');
             fetchListings(); // Refresh listings
         } catch (error) {
             console.error("Deal Creation Error:", error);
             alert(`Failed to create listing: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const toggleUpload = (dealId) => {
+        if (expandedDealId === dealId) {
+            setExpandedDealId(null);
+        } else {
+            setExpandedDealId(dealId);
         }
     };
 
@@ -94,18 +94,6 @@ const CreateDeal = () => {
                         <label className="block text-sm font-medium text-slate-700">Public Teaser</label>
                         <textarea className="w-full p-2 border rounded h-24" value={teaser} onChange={e => setTeaser(e.target.value)} required />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Private Document URL</label>
-                        <input className="w-full p-2 border rounded" value={docUrl} onChange={e => setDocUrl(e.target.value)} placeholder="https://example.com/pitch-deck.pdf" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Document Type</label>
-                        <select className="w-full p-2 border rounded" value={docType} onChange={e => setDocType(e.target.value)}>
-                            <option value="PITCH_DECK">Pitch Deck</option>
-                            <option value="FINANCIALS">Financials</option>
-                            <option value="LEGAL">Legal</option>
-                        </select>
-                    </div>
                     <button type="submit" className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-slate-800">
                         Create Listing
                     </button>
@@ -120,22 +108,43 @@ const CreateDeal = () => {
                 ) : (
                     <div className="space-y-4">
                         {listings.map(deal => (
-                            <div key={deal.id} className="border p-4 rounded hover:bg-slate-50">
-                                <h3 className="font-bold text-lg">{deal.title}</h3>
-                                <p className="text-sm text-slate-600">{deal.industry}</p>
-                                <div className="flex justify-between mt-2 text-sm">
-                                    <span className="font-semibold text-emerald-600">${deal.targetAmount.toLocaleString()}</span>
-                                    <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-                                        {deal.status}
-                                    </span>
+                            <div key={deal.id} className="border p-4 rounded hover:bg-slate-50 transition-all">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-bold text-lg">{deal.title}</h3>
+                                        <p className="text-sm text-slate-600">{deal.industry}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                                            {deal.status}
+                                        </span>
+                                        <div className="font-semibold text-emerald-600 mt-1">${deal.targetAmount.toLocaleString()}</div>
+                                    </div>
                                 </div>
-                                {deal.status === 'DRAFT' && (
+
+                                <div className="mt-4 flex gap-2">
+                                    {deal.status === 'DRAFT' && (
+                                        <button
+                                            onClick={() => handleSubmitForApproval(deal.id)}
+                                            className="bg-blue-600 text-white text-sm py-1 px-3 rounded hover:bg-blue-700"
+                                        >
+                                            Submit for Approval
+                                        </button>
+                                    )}
                                     <button
-                                        onClick={() => handleSubmitForApproval(deal.id)}
-                                        className="mt-3 w-full bg-blue-600 text-white text-sm py-1 rounded hover:bg-blue-700"
+                                        onClick={() => toggleUpload(deal.id)}
+                                        className="flex items-center gap-1 bg-slate-100 text-slate-700 text-sm py-1 px-3 rounded hover:bg-slate-200"
                                     >
-                                        Submit for Approval
+                                        <Upload className="w-3 h-3" />
+                                        {expandedDealId === deal.id ? 'Hide Upload' : 'Upload Documents'}
+                                        {expandedDealId === deal.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                     </button>
+                                </div>
+
+                                {expandedDealId === deal.id && (
+                                    <div className="mt-4 border-t pt-4">
+                                        <DocumentUpload dealId={deal.id} onUploadSuccess={() => setExpandedDealId(null)} />
+                                    </div>
                                 )}
                             </div>
                         ))}

@@ -72,4 +72,29 @@ public class DocumentController {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
+    @Autowired
+    private com.innovest.service.StorageService storageService;
+
+    @org.springframework.web.bind.annotation.PostMapping("/upload")
+    public ResponseEntity<?> uploadDocument(@RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+                                            @RequestParam("dealId") UUID dealId,
+                                            @RequestParam("type") com.innovest.domain.DocType type,
+                                            @RequestParam("isPrivate") boolean isPrivate,
+                                            @RequestParam("userId") UUID userId) {
+        try {
+            String fileUrl = storageService.store(file, "deal-documents");
+            
+            DealDocument document = new DealDocument();
+            document.setFileUrl(fileUrl);
+            document.setFileType(type);
+            document.setPrivate(isPrivate);
+            
+            DealDocument savedDoc = dealService.addDocumentToDeal(dealId, document, userId);
+            
+            return ResponseEntity.ok(savedDoc);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
 }
