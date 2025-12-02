@@ -79,10 +79,28 @@ public class DealService {
     }
 
     @Transactional
+    public Deal closeDeal(UUID dealId, UUID innovatorId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        if (!deal.getInnovator().getId().equals(innovatorId)) {
+            throw new RuntimeException("Unauthorized: You are not the owner of this deal");
+        }
+
+        if (deal.getStatus() != DealStatus.ACTIVE) {
+            throw new RuntimeException("Only ACTIVE deals can be closed");
+        }
+
+        deal.setStatus(DealStatus.CLOSED);
+        deal.setUpdatedAt(java.time.LocalDateTime.now());
+        return dealRepository.save(deal);
+    }
+
+    @Transactional
     public DealDocument addDocumentToDeal(UUID dealId, DealDocument document, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
-        
+
         if (!deal.getInnovator().getId().equals(userId)) {
             throw new RuntimeException("Unauthorized: You are not the owner of this deal");
         }
@@ -107,7 +125,7 @@ public class DealService {
     public PrivateDealDTO getPrivateDeal(UUID dealId, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -121,7 +139,7 @@ public class DealService {
         else if (user.getRole() == UserRole.INVESTOR) {
             AccessRequest request = accessRequestRepository.findByDealIdAndInvestorId(dealId, userId)
                     .orElse(null);
-            
+
             if (request != null && request.getStatus() == RequestStatus.APPROVED && request.isNdaSigned()) {
                 hasAccess = true;
             }
@@ -138,18 +156,29 @@ public class DealService {
 
         return dealMapper.toPrivateDto(deal, documentDTOs);
     }
+
     public List<DealDTO> getAllActiveDeals(String sortBy, UUID innovatorId) {
         List<Deal> deals;
         if (innovatorId != null) {
             deals = dealRepository.findByInnovatorIdAndStatus(innovatorId, DealStatus.ACTIVE);
         } else if ("recent".equals(sortBy)) {
-            deals = dealRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+            deals = dealRepository.findAll(org.springframework.data.domain.Sort
+                    .by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         } else {
             deals = dealRepository.findAll();
         }
-        
+
         return deals.stream()
-                .filter(deal -> deal.getStatus() == DealStatus.ACTIVE)
+                .filter(deal -> {
+                    if (deal.getStatus() == DealStatus.ACTIVE) {
+                        return true;
+                    }
+                    if (deal.getStatus() == DealStatus.CLOSED) {
+                        return deal.getUpdatedAt() != null &&
+                                deal.getUpdatedAt().isAfter(java.time.LocalDateTime.now().minusHours(24));
+                    }
+                    return false;
+                })
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -179,7 +208,7 @@ public class DealService {
     public java.util.Set<DealDTO> getSavedDeals(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         return user.getSavedDeals().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toSet());
