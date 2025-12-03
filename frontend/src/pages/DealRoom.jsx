@@ -237,11 +237,16 @@ const DealRoom = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm h-96 flex flex-col">
-                                        <div className="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
-                                            {/* Chat Messages Placeholder - In real app, fetch from backend */}
-                                            <ChatBox dealId={id} userId={user.id} />
-                                        </div>
+                                    <div className="mt-4">
+                                        <button
+                                            onClick={() => window.location.href = `/messages/deal/${id}`}
+                                            className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors inline-flex items-center gap-2"
+                                        >
+                                            Chat with Innovator
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 )}
                             </div>

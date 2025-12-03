@@ -22,6 +22,11 @@ public class ChatMessage {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    @ManyToOne
+    @JoinColumn(name = "recipient_id", nullable = true) // Nullable for now to support potential group announcements or
+                                                        // legacy data
+    private User recipient;
+
     @Column(nullable = false, length = 2000)
     private String content;
 
@@ -55,6 +60,14 @@ public class ChatMessage {
 
     public void setSender(User sender) {
         this.sender = sender;
+    }
+
+    public User getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(User recipient) {
+        this.recipient = recipient;
     }
 
     public String getContent() {

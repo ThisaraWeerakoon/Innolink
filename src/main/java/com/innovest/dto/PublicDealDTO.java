@@ -10,6 +10,7 @@ public class PublicDealDTO {
     private Double targetAmount;
     private String industry;
     private DealStatus status;
+    private UserDTO innovator;
 
     public UUID getId() {
         return id;
@@ -57,5 +58,13 @@ public class PublicDealDTO {
 
     public void setStatus(DealStatus status) {
         this.status = status;
+    }
+
+    public UserDTO getInnovator() {
+        return innovator;
+    }
+
+    public void setInnovator(UserDTO innovator) {
+        this.innovator = innovator;
     }
 }
