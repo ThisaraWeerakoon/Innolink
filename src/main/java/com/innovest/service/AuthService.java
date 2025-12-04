@@ -36,11 +36,11 @@ public class AuthService {
 
         String token = jwtUtils.generateToken(new CustomUserDetails(user));
         return new AuthResponse(
-            token, 
-            user.getId(), 
-            user.getEmail(), 
-            user.getRole().name()
-        );
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isVerified());
     }
 
     @Transactional
@@ -56,5 +56,10 @@ public class AuthService {
         user.setVerified(false); // Default to false
 
         return userRepository.save(user);
+    }
+
+    public User getUser(java.util.UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

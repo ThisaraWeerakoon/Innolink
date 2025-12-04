@@ -50,17 +50,17 @@ const CreateDeal = () => {
         }
     };
 
-    const handleCreate = async (e) => {
-        e.preventDefault();
+    const handleCreate = async (status) => {
         try {
             await api.post(`/innovator/deals?userId=${user.id}`, {
                 title,
                 industry,
                 targetAmount: parseFloat(goal),
                 teaserSummary: teaser,
+                status: status
             });
 
-            alert('Listing created! You can now upload documents below.');
+            alert(`Listing ${status === 'DRAFT' ? 'saved as draft' : 'published'}! You can now upload documents below.`);
             // Reset form
             setTitle('');
             setIndustry('');
@@ -113,7 +113,7 @@ const CreateDeal = () => {
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
                 <h2 className="text-xl font-bold mb-4 text-slate-800">Create New Listing</h2>
-                <form onSubmit={handleCreate} className="space-y-4">
+                <form className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Title</label>
                         <input className="w-full p-2 border rounded" value={title} onChange={e => setTitle(e.target.value)} required />
@@ -132,9 +132,35 @@ const CreateDeal = () => {
                         <label className="block text-sm font-medium text-slate-700">Public Teaser</label>
                         <textarea className="w-full p-2 border rounded h-24" value={teaser} onChange={e => setTeaser(e.target.value)} required />
                     </div>
-                    <button type="submit" className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-slate-800">
-                        Create Listing
-                    </button>
+
+                    <div className="flex items-center gap-4 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => handleCreate('DRAFT')}
+                            className="bg-yellow-100 text-yellow-800 px-6 py-2 rounded hover:bg-yellow-200 font-medium"
+                        >
+                            Save as Draft
+                        </button>
+
+                        <div className="relative group">
+                            <button
+                                type="button"
+                                onClick={() => handleCreate('PENDING_APPROVAL')}
+                                disabled={!user.isVerified}
+                                className={`px-6 py-2 rounded font-medium text-white transition-colors ${user.isVerified
+                                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                                        : 'bg-slate-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                Publish Deal
+                            </button>
+                            {!user.isVerified && (
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center">
+                                    You must be verified by an admin to publish deals. You can save as draft for now.
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -246,7 +272,12 @@ const CreateDeal = () => {
                                         {deal.status === 'DRAFT' && (
                                             <button
                                                 onClick={() => handleSubmitForApproval(deal.id)}
-                                                className="bg-blue-600 text-white text-sm py-1 px-3 rounded hover:bg-blue-700"
+                                                disabled={!user.isVerified}
+                                                className={`text-sm py-1 px-3 rounded text-white ${user.isVerified
+                                                        ? 'bg-blue-600 hover:bg-blue-700'
+                                                        : 'bg-slate-400 cursor-not-allowed'
+                                                    }`}
+                                                title={!user.isVerified ? "You must be verified to submit deals" : ""}
                                             >
                                                 Submit for Approval
                                             </button>
