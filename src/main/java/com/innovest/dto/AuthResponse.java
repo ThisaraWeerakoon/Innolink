@@ -8,10 +8,29 @@ public class AuthResponse {
     private String email;
     private String role;
 
-    public AuthResponse(String accessToken, java.util.UUID userId, String email, String role) {
+    private boolean isVerified;
+
+    public AuthResponse(String accessToken, java.util.UUID userId, String email, String role, boolean isVerified) {
         this.accessToken = accessToken;
         this.userId = userId;
         this.email = email;
+        this.role = role;
+        this.isVerified = isVerified;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
         this.role = role;
     }
 
