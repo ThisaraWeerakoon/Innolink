@@ -98,6 +98,24 @@ public class DealService {
     }
 
     @Transactional
+    public Deal closeDeal(UUID dealId, UUID innovatorId) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        if (!deal.getInnovator().getId().equals(innovatorId)) {
+            throw new RuntimeException("Unauthorized: You are not the owner of this deal");
+        }
+
+        if (deal.getStatus() != DealStatus.ACTIVE) {
+            throw new RuntimeException("Only ACTIVE deals can be closed");
+        }
+
+        deal.setStatus(DealStatus.CLOSED);
+        deal.setUpdatedAt(java.time.LocalDateTime.now());
+        return dealRepository.save(deal);
+    }
+
+    @Transactional
     public DealDocument addDocumentToDeal(UUID dealId, DealDocument document, UUID userId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
@@ -170,7 +188,16 @@ public class DealService {
         }
 
         return deals.stream()
-                .filter(deal -> deal.getStatus() == DealStatus.ACTIVE)
+                .filter(deal -> {
+                    if (deal.getStatus() == DealStatus.ACTIVE) {
+                        return true;
+                    }
+                    if (deal.getStatus() == DealStatus.CLOSED) {
+                        return deal.getUpdatedAt() != null &&
+                                deal.getUpdatedAt().isAfter(java.time.LocalDateTime.now().minusHours(24));
+                    }
+                    return false;
+                })
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
