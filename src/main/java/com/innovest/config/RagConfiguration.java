@@ -73,7 +73,7 @@ public class RagConfiguration {
                 dataSource.setSslMode("require");
             }
 
-            return PgVectorEmbeddingStore.builder()
+            return PgVectorEmbeddingStore.datasourceBuilder()
                     .datasource(dataSource)
                     .table("embeddings")
                     .dimension(384)
