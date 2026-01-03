@@ -38,6 +38,8 @@ public class FileSystemStorageService implements StorageService {
             }
             // Generate unique filename
             String originalFilename = file.getOriginalFilename();
+            System.out.println("WARN: FileSystemStorageService is active. Storing " + originalFilename + " to local disk.");
+
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));

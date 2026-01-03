@@ -39,19 +39,23 @@ public class AzureBlobStorageService implements StorageService {
         }
     }
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AzureBlobStorageService.class);
+
     @Override
     public String uploadFile(MultipartFile file, String folderName) {
         try {
+            logger.info("Starting file upload. Original filename: {}, Size: {}", file.getOriginalFilename(), file.getSize());
+            
             // Use configured container name if folderName is not provided or specialized logic needed
-            // For now assuming folderName acts as containerName or we use the injected one.
-            // Requirement says: "spring.cloud.azure.storage.blob.container-name=innovest-data"
-            // And logic: "Generate a unique filename (UUID), upload the file, and return the unique filename"
-            // It seems "folderName" arg in `uploadFile` might be the container name or a subfolder.
-            // Let's use the injected containerName for the main container.
+            logger.info("Using Azure Blob operations. Target Container: {}", containerName);
             
             BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
             if (!containerClient.exists()) {
+                logger.info("Container {} does not exist. Creating it...", containerName);
                 containerClient.create();
+                logger.info("Container created.");
+            } else {
+                logger.info("Container {} exists.", containerName);
             }
 
             String originalFilename = file.getOriginalFilename();
@@ -60,12 +64,17 @@ public class AzureBlobStorageService implements StorageService {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String filename = UUID.randomUUID().toString() + extension;
+            logger.info("Generated unique filename: {}", filename);
 
             BlobClient blobClient = containerClient.getBlobClient(filename);
+            logger.info("Uploading to blob endpoint: {}", blobClient.getBlobUrl());
+            
             blobClient.upload(file.getInputStream(), file.getSize(), true);
+            logger.info("Upload successful. Filename returned: {}", filename);
 
             return filename;
         } catch (IOException e) {
+            logger.error("Failed to upload file to Azure Blob Storage", e);
             throw new RuntimeException("Failed to upload file to Azure Blob Storage", e);
         }
     }
