@@ -30,23 +30,35 @@ const DocumentUpload = ({ dealId, onUploadSuccess }) => {
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('dealId', dealId);
-        formData.append('type', docType);
-        formData.append('isPrivate', isPrivate);
-        formData.append('userId', user.id);
 
         try {
-            await api.post('/documents/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            if (docType === 'PITCH_DECK') {
+                // Use the new Azure Blob Storage endpoint for Pitch Decks
+                await api.post(`/deals/${dealId}/pitch-deck`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            } else {
+                // Use the generic document upload for other types
+                formData.append('dealId', dealId);
+                formData.append('type', docType);
+                formData.append('isPrivate', isPrivate);
+                formData.append('userId', user.id);
+
+                await api.post('/documents/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            }
+
             setSuccess(true);
             setFile(null);
             if (onUploadSuccess) onUploadSuccess();
         } catch (err) {
             console.error(err);
-            setError(err.response?.data || "Upload failed");
+            setError(err.response?.data?.message || "Upload failed");
         } finally {
             setUploading(false);
         }

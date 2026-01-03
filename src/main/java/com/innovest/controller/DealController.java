@@ -74,4 +74,9 @@ public class DealController {
         com.innovest.security.CustomUserDetails userDetails = (com.innovest.security.CustomUserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(dealService.getSavedDeals(userDetails.getId()));
     }
+    @PostMapping("/deals/{id}/pitch-deck")
+    public ResponseEntity<Void> uploadPitchDeck(@PathVariable UUID id, @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        dealService.uploadPitchDeck(id, file);
+        return ResponseEntity.ok().build();
+    }
 }

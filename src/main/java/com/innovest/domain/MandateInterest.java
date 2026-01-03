@@ -32,4 +32,16 @@ public class MandateInterest {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    // Manual Getters/Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public Mandate getMandate() { return mandate; }
+    public void setMandate(Mandate mandate) { this.mandate = mandate; }
+    public User getInnovator() { return innovator; }
+    public void setInnovator(User innovator) { this.innovator = innovator; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

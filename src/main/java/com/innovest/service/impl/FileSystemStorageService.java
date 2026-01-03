@@ -72,4 +72,19 @@ public class FileSystemStorageService implements StorageService {
             throw new RuntimeException("Could not read file: " + path, e);
         }
     }
+
+    @Override
+    public String uploadFile(MultipartFile file, String folderName) {
+        return store(file, folderName);
+    }
+
+    @Override
+    public byte[] downloadFile(String filename) {
+        try {
+             Path file = this.rootLocation.resolve(filename).normalize();
+             return Files.readAllBytes(file);
+        } catch (IOException e) {
+             throw new RuntimeException("Failed to read file.", e);
+        }
+    }
 }

@@ -30,6 +30,9 @@ public class Deal {
 
     private String industry;
 
+    @Column(name = "pitch_deck_filename")
+    private String pitchDeckFilename;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DealStatus status = DealStatus.DRAFT;
@@ -89,6 +92,14 @@ public class Deal {
 
     public void setIndustry(String industry) {
         this.industry = industry;
+    }
+
+    public String getPitchDeckFilename() {
+        return pitchDeckFilename;
+    }
+
+    public void setPitchDeckFilename(String pitchDeckFilename) {
+        this.pitchDeckFilename = pitchDeckFilename;
     }
 
     public DealStatus getStatus() {

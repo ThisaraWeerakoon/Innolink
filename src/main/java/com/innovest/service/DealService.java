@@ -206,6 +206,19 @@ public class DealService {
                 .collect(Collectors.toSet());
     }
 
+    @Autowired
+    private StorageService storageService;
+
+    @Transactional
+    public void uploadPitchDeck(UUID dealId, org.springframework.web.multipart.MultipartFile file) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        String filename = storageService.uploadFile(file, "pitch-decks");
+        deal.setPitchDeckFilename(filename);
+        dealRepository.save(deal);
+    }
+
     private DealDTO convertToDTO(Deal deal) {
         DealDTO dto = new DealDTO();
         dto.setId(deal.getId());
@@ -226,6 +239,8 @@ public class DealService {
                     .map(dealMapper::toDocumentDto)
                     .collect(Collectors.toList()));
         }
+        // Add pitch deck filename to DTO if needed, but purely optional based on request.
+        // User didn't ask to return it in DTO, just save it.
         return dto;
     }
 }
