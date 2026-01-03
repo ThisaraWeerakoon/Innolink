@@ -30,45 +30,9 @@ public class RagConfiguration {
     }
 
     @Bean
-    public EmbeddingStore<TextSegment> embeddingStore() {
-        // Clean up the JDBC URL to get just the host, port, and database
-        // Expected format: jdbc:postgresql://host:port/database
-        // PgVectorEmbeddingStore builder needs explicit host, port, db, user, pass
-
-        // For simplicity in this demo, we assume the standard format.
-        // A more robust production setup would parse this carefully or use separate properties.
-        
-        String host = "localhost";
-        int port = 5432;
-        String database = "innolink";
-        
-        try {
-            String cleanUrl = databaseUrl.replace("jdbc:postgresql://", "");
-            int slashIndex = cleanUrl.indexOf("/");
-            String hostPort = cleanUrl.substring(0, slashIndex);
-            database = cleanUrl.substring(slashIndex + 1);
-            
-            // Remove params if any
-            if (database.contains("?")) {
-                database = database.substring(0, database.indexOf("?"));
-            }
-
-            String[] hostPortSplit = hostPort.split(":");
-            host = hostPortSplit[0];
-            if (hostPortSplit.length > 1) {
-                port = Integer.parseInt(hostPortSplit[1]);
-            }
-        } catch (Exception e) {
-             System.err.println("Failed to parse DB URL for PGVector: " + e.getMessage());
-             // Fallback or explicit failure
-        }
-
+    public EmbeddingStore<TextSegment> embeddingStore(javax.sql.DataSource dataSource) {
         return PgVectorEmbeddingStore.builder()
-                .host(host)
-                .port(port)
-                .database(database)
-                .user(databaseUser)
-                .password(databasePassword)
+                .datasource(dataSource)
                 .table("embeddings")
                 .dimension(384) // Matches AllMiniLmL6V2
                 .build();
