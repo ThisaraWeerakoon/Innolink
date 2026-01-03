@@ -37,7 +37,7 @@ public class AccessRequestService {
         request.setDeal(deal);
         request.setInvestor(investor);
         request.setStatus(RequestStatus.PENDING);
-        
+
         return accessRequestRepository.save(request);
     }
 
@@ -101,11 +101,16 @@ public class AccessRequestService {
         request.setIntroRequested(true);
         return accessRequestRepository.save(request);
     }
+
     public AccessRequest getAccessRequest(UUID dealId, UUID investorId) {
         return accessRequestRepository.findByDealIdAndInvestorId(dealId, investorId).orElse(null);
     }
 
     public java.util.List<AccessRequest> getRequestsByInnovator(UUID innovatorId) {
         return accessRequestRepository.findByDealInnovatorId(innovatorId);
+    }
+
+    public java.util.List<AccessRequest> getRequestsByInvestor(UUID investorId) {
+        return accessRequestRepository.findByInvestorId(investorId);
     }
 }
