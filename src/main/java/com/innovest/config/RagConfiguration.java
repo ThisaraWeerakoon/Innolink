@@ -31,58 +31,56 @@ public class RagConfiguration {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
-        // LangChain4j 0.31.0 workaround:
-        // 1. Manual URL parsing (no .dataSource() in builder)
-        // 2. Append ?sslmode=require to database name (no .ssl() in builder)
-        // 3. Remove .usePostgresDefaultSchema() (does not exist)
-
-        String host = "localhost";
-        int port = 5432;
-        String database = "innolink";
-        boolean useSsl = false;
-
         try {
-            // Azure URL: jdbc:postgresql://host:port/database?sslmode=require&...
+            // Parse the Postgres URL to extract host, port, etc.
+            // Azure URL format: jdbc:postgresql://<host>:<port>/<database>?sslmode=require&user=<user>&password=<password>
             String cleanUrl = databaseUrl.replace("jdbc:postgresql://", "");
-            
-            // Extract query params for SSL check
+
+            // Separate query params
+            String query = "";
             if (cleanUrl.contains("?")) {
-                String query = cleanUrl.substring(cleanUrl.indexOf("?") + 1);
-                if (query.contains("sslmode=require") || query.contains("sslmode=verify")) {
-                    useSsl = true;
-                }
-                cleanUrl = cleanUrl.substring(0, cleanUrl.indexOf("?"));
+                int qIndex = cleanUrl.indexOf("?");
+                query = cleanUrl.substring(qIndex + 1);
+                cleanUrl = cleanUrl.substring(0, qIndex);
             }
 
+            // Extract host, port, db
             int slashIndex = cleanUrl.indexOf("/");
             String hostPort = cleanUrl.substring(0, slashIndex);
-            
-            // Set database name
-            database = cleanUrl.substring(slashIndex + 1);
-            
-            // If SSL is needed, append it to the database name as a hack
-            // so the underlying driver sees ".../innolink?sslmode=require"
-            if (useSsl) {
-                database = database + "?sslmode=require";
+            String database = cleanUrl.substring(slashIndex + 1);
+
+            String host = hostPort;
+            int port = 5432;
+            if (hostPort.contains(":")) {
+                String[] split = hostPort.split(":");
+                host = split[0];
+                port = Integer.parseInt(split[1]);
             }
 
-            String[] hostPortSplit = hostPort.split(":");
-            host = hostPortSplit[0];
-            if (hostPortSplit.length > 1) {
-                port = Integer.parseInt(hostPortSplit[1]);
+            // Configure PGSimpleDataSource
+            // We use the driver implementation directly to ensure SSL is handled correctly
+            org.postgresql.ds.PGSimpleDataSource dataSource = new org.postgresql.ds.PGSimpleDataSource();
+            dataSource.setServerNames(new String[]{host});
+            dataSource.setPortNumbers(new int[]{port});
+            dataSource.setDatabaseName(database);
+            dataSource.setUser(databaseUser);
+            dataSource.setPassword(databasePassword);
+            
+            // Enable SSL if detected in URL or if assumed for Azure
+            // Note: Azure requires SSL, so we default to it if "sslmode" is present or if we want to be safe
+            if (query.contains("sslmode=require") || query.contains("sslmode=verify")) {
+                dataSource.setSsl(true);
+                dataSource.setSslMode("require");
             }
+
+            return PgVectorEmbeddingStore.builder()
+                    .datasource(dataSource)
+                    .table("embeddings")
+                    .dimension(384)
+                    .build();
+
         } catch (Exception e) {
-             System.err.println("Failed to parse DB URL for PGVector: " + e.getMessage());
+            throw new RuntimeException("Failed to configure PgVectorEmbeddingStore: " + e.getMessage(), e);
         }
-
-        return PgVectorEmbeddingStore.builder()
-                .host(host)
-                .port(port)
-                .database(database)
-                .user(databaseUser)
-                .password(databasePassword)
-                .table("embeddings")
-                .dimension(384)
-                .build();
     }
 }
