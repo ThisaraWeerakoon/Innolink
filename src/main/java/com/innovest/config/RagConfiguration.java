@@ -31,8 +31,10 @@ public class RagConfiguration {
 
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
-        // LangChain4j 0.31.0 does not support .datasource() in the builder.
-        // We must manually parse values and configure SSL.
+        // LangChain4j 0.31.0 workaround:
+        // 1. Manual URL parsing (no .dataSource() in builder)
+        // 2. Append ?sslmode=require to database name (no .ssl() in builder)
+        // 3. Remove .usePostgresDefaultSchema() (does not exist)
 
         String host = "localhost";
         int port = 5432;
@@ -54,7 +56,15 @@ public class RagConfiguration {
 
             int slashIndex = cleanUrl.indexOf("/");
             String hostPort = cleanUrl.substring(0, slashIndex);
+            
+            // Set database name
             database = cleanUrl.substring(slashIndex + 1);
+            
+            // If SSL is needed, append it to the database name as a hack
+            // so the underlying driver sees ".../innolink?sslmode=require"
+            if (useSsl) {
+                database = database + "?sslmode=require";
+            }
 
             String[] hostPortSplit = hostPort.split(":");
             host = hostPortSplit[0];
@@ -73,19 +83,6 @@ public class RagConfiguration {
                 .password(databasePassword)
                 .table("embeddings")
                 .dimension(384)
-                .usePostgresDefaultSchema(false) // Assuming standard schema usage
-                // .ssl(useSsl) // Check if .ssl exists in 0.31.0. If not, we rely on the driver behavior or defaults.
-                // In 0.31.0, there is no explicit .ssl() method on the builder publicly documented in some places.
-                // However, without it, connecting to Azure might fail if it doesn't default to SSL.
-                // Let's assume standard parameters work or try to use a different constructor mechanism if this fails.
-                // BUT, since we are stuck with 0.31.0, let's try just setting values correctly.
-                // If this fails, we might need to create a custom DataSource and use a different factory if available.
-                // WAIT -> effectively we can't easily force SSL without the method. 
-                // Let's check if we can pass properties like ?sslmode=require in the host/db? No.
-                
-                // ALTERNATIVE: Use the constructor taking a DataSource if available? No builder method.
-                // Let's rely on standard parsing. If LangChain4j uses the PG driver under the hood, it might pick up defaults?
-                // Actually, often it creates a simple Datasource internally.
                 .build();
     }
 }
