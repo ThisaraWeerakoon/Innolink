@@ -41,7 +41,8 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return ResponseEntity.ok(convertToDTO(userDetails.getUser()));
+        User user = authService.getUser(userDetails.getUser().getId());
+        return ResponseEntity.ok(convertToDTO(user));
     }
 
     private com.innovest.dto.UserDTO convertToDTO(User user) {
