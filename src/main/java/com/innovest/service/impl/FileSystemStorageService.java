@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
-@Profile("!prod")
+@Profile("!prod & !dev")
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation = Paths.get("uploads");

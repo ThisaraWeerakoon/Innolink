@@ -16,7 +16,7 @@ import java.net.MalformedURLException;
 import java.util.UUID;
 
 @Service
-@Profile("prod")
+@Profile({"prod", "dev"})
 public class AzureBlobStorageService implements StorageService {
 
     @Autowired
