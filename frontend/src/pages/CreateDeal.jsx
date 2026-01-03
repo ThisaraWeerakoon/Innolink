@@ -97,6 +97,20 @@ const CreateDeal = () => {
         }
     };
 
+    const handleCloseDeal = async (dealId) => {
+        if (!window.confirm("Are you sure you want to close this deal? It will remain visible for 24 hours.")) {
+            return;
+        }
+        try {
+            await api.post(`/innovator/deals/${dealId}/close?userId=${user.id}`);
+            alert('Deal closed successfully!');
+            fetchListings();
+        } catch (error) {
+            console.error("Failed to close deal:", error);
+            alert(`Failed to close deal: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
     const toggleUpload = (dealId) => {
         if (expandedDealId === dealId) {
             setExpandedDealId(null);
@@ -183,7 +197,7 @@ const CreateDeal = () => {
                                             <p className="text-sm text-slate-600">{deal.industry}</p>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : deal.status === 'CLOSED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
                                                 {deal.status}
                                             </span>
                                             <div className="font-semibold text-emerald-600 mt-1">${deal.targetAmount.toLocaleString()}</div>
@@ -283,6 +297,14 @@ const CreateDeal = () => {
                                                 title={!user.isVerified ? "You must be verified to submit deals" : ""}
                                             >
                                                 Submit for Approval
+                                            </button>
+                                        )}
+                                        {deal.status === 'ACTIVE' && (
+                                            <button
+                                                onClick={() => handleCloseDeal(deal.id)}
+                                                className="bg-red-600 text-white text-sm py-1 px-3 rounded hover:bg-red-700"
+                                            >
+                                                Close Deal
                                             </button>
                                         )}
                                         <button
