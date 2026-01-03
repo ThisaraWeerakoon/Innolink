@@ -236,6 +236,9 @@ public class DealService {
     @Autowired
     private StorageService storageService;
 
+    @Autowired
+    private RagIngestionService ragIngestionService;
+
     @Transactional
     public void uploadPitchDeck(UUID dealId, org.springframework.web.multipart.MultipartFile file) {
         Deal deal = dealRepository.findById(dealId)
@@ -244,6 +247,9 @@ public class DealService {
         String filename = storageService.uploadFile(file, "pitch-decks");
         deal.setPitchDeckFilename(filename);
         dealRepository.save(deal);
+
+        // Trigger RAG Ingestion asynchronously
+        ragIngestionService.ingestPitchDeck(dealId, filename);
     }
 
     private DealDTO convertToDTO(Deal deal) {

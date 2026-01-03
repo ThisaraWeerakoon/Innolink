@@ -88,9 +88,18 @@ public class DealController {
                 .getPrincipal();
         return ResponseEntity.ok(dealService.getSavedDeals(userDetails.getId()));
     }
+    @Autowired
+    private com.innovest.service.RagSearchService ragSearchService;
+
     @PostMapping("/deals/{id}/pitch-deck")
     public ResponseEntity<Void> uploadPitchDeck(@PathVariable UUID id, @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         dealService.uploadPitchDeck(id, file);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/deals/search")
+    public ResponseEntity<List<String>> searchDeals(@RequestParam String query, @RequestParam(required = false) UUID dealId) {
+        // Default max results to 5
+        return ResponseEntity.ok(ragSearchService.search(query, dealId, 5));
     }
 }
