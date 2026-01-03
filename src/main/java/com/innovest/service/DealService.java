@@ -37,7 +37,22 @@ public class DealService {
         User innovator = userRepository.findById(innovatorId)
                 .orElseThrow(() -> new RuntimeException("Innovator not found"));
         deal.setInnovator(innovator);
-        deal.setStatus(DealStatus.DRAFT);
+
+        // Default to DRAFT if not specified
+        if (deal.getStatus() == null) {
+            deal.setStatus(DealStatus.DRAFT);
+        }
+
+        // If trying to publish immediately, check verification
+        if (deal.getStatus() == DealStatus.PENDING_APPROVAL) {
+            if (!innovator.isVerified()) {
+                throw new RuntimeException("You must be a verified innovator to publish deals.");
+            }
+        } else {
+            // Force DRAFT for any other status during creation if not explicitly handled
+            deal.setStatus(DealStatus.DRAFT);
+        }
+
         return dealRepository.save(deal);
     }
 
@@ -48,6 +63,10 @@ public class DealService {
 
         if (!deal.getInnovator().getId().equals(userId)) {
             throw new RuntimeException("Unauthorized: You are not the owner of this deal");
+        }
+
+        if (!deal.getInnovator().isVerified()) {
+            throw new RuntimeException("You must be a verified innovator to submit deals for approval.");
         }
 
         if (deal.getStatus() != DealStatus.DRAFT) {

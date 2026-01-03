@@ -34,7 +34,11 @@ export const AuthProvider = ({ children }) => {
                 try {
                     // Verify token with backend
                     const response = await api.get('/auth/verify');
-                    setUser(response.data);
+                    const userData = {
+                        ...response.data,
+                        isVerified: response.data.verified
+                    };
+                    setUser(userData);
                     setToken(storedToken);
                 } catch (error) {
                     console.error("Token verification failed", error);
@@ -55,13 +59,14 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await api.post('/auth/login', { email, password });
 
-            // Response now contains { accessToken, userId, email, role, tokenType }
-            const { accessToken, userId, email: userEmail, role } = response.data;
+            // Response now contains { accessToken, userId, email, role, tokenType, verified }
+            const { accessToken, userId, email: userEmail, role, verified } = response.data;
 
             const userData = {
                 id: userId,
                 email: userEmail,
-                role: role
+                role: role,
+                isVerified: verified
             };
 
             setToken(accessToken);

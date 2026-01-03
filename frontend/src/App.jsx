@@ -14,6 +14,8 @@ import DealRoom from './pages/DealRoom';
 import Profile from './pages/Profile';
 import InnovatorPublicProfile from './pages/InnovatorPublicProfile';
 import InvestorPublicProfile from './pages/InvestorPublicProfile';
+import DealMessages from './pages/DealMessages';
+import GlobalMessages from './pages/GlobalMessages';
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['INVESTOR', 'INNOVATOR', 'ADMIN']} />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/listing/:id" element={<DealRoom />} />
+            <Route path="/messages" element={<GlobalMessages />} />
+            <Route path="/messages/deal/:dealId" element={<GlobalMessages />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/innovator/:id" element={<InnovatorPublicProfile />} />
             <Route path="/investor/:id" element={<InvestorPublicProfile />} />

@@ -14,4 +14,6 @@ public interface DealMapper {
     PrivateDealDTO toPrivateDto(Deal deal, java.util.List<DealDocumentDTO> documents);
 
     DealDocumentDTO toDocumentDto(DealDocument document);
+
+    com.innovest.dto.UserDTO toUserDto(com.innovest.domain.User user);
 }

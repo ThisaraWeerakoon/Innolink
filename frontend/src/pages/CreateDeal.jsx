@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MessageSquare, Upload, ChevronDown, ChevronUp, UserCheck, X, Check } from 'lucide-react';
 import DocumentUpload from '../components/DocumentUpload';
@@ -6,6 +7,7 @@ import ChatBox from '../components/ChatBox';
 
 const CreateDeal = () => {
     const { user, api } = useAuth();
+    const navigate = useNavigate();
     const [listings, setListings] = useState([]);
     const [requests, setRequests] = useState([]);
     const [title, setTitle] = useState('');
@@ -50,17 +52,17 @@ const CreateDeal = () => {
         }
     };
 
-    const handleCreate = async (e) => {
-        e.preventDefault();
+    const handleCreate = async (status) => {
         try {
             await api.post(`/innovator/deals?userId=${user.id}`, {
                 title,
                 industry,
                 targetAmount: parseFloat(goal),
                 teaserSummary: teaser,
+                status: status
             });
 
-            alert('Listing created! You can now upload documents below.');
+            alert(`Listing ${status === 'DRAFT' ? 'saved as draft' : 'published'}! You can now upload documents below.`);
             // Reset form
             setTitle('');
             setIndustry('');
@@ -127,7 +129,7 @@ const CreateDeal = () => {
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
                 <h2 className="text-xl font-bold mb-4 text-slate-800">Create New Listing</h2>
-                <form onSubmit={handleCreate} className="space-y-4">
+                <form className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Title</label>
                         <input className="w-full p-2 border rounded" value={title} onChange={e => setTitle(e.target.value)} required />
@@ -146,9 +148,35 @@ const CreateDeal = () => {
                         <label className="block text-sm font-medium text-slate-700">Public Teaser</label>
                         <textarea className="w-full p-2 border rounded h-24" value={teaser} onChange={e => setTeaser(e.target.value)} required />
                     </div>
-                    <button type="submit" className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-slate-800">
-                        Create Listing
-                    </button>
+
+                    <div className="flex items-center gap-4 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => handleCreate('DRAFT')}
+                            className="bg-yellow-100 text-yellow-800 px-6 py-2 rounded hover:bg-yellow-200 font-medium"
+                        >
+                            Save as Draft
+                        </button>
+
+                        <div className="relative group">
+                            <button
+                                type="button"
+                                onClick={() => handleCreate('PENDING_APPROVAL')}
+                                disabled={!user.isVerified}
+                                className={`px-6 py-2 rounded font-medium text-white transition-colors ${user.isVerified
+                                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                                        : 'bg-slate-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                Publish Deal
+                            </button>
+                            {!user.isVerified && (
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center">
+                                    You must be verified by an admin to publish deals. You can save as draft for now.
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -256,11 +284,17 @@ const CreateDeal = () => {
                                         </div>
                                     )}
 
+                                    {/* Chat Button */}
                                     <div className="mt-4 flex gap-2">
                                         {deal.status === 'DRAFT' && (
                                             <button
                                                 onClick={() => handleSubmitForApproval(deal.id)}
-                                                className="bg-blue-600 text-white text-sm py-1 px-3 rounded hover:bg-blue-700"
+                                                disabled={!user.isVerified}
+                                                className={`text-sm py-1 px-3 rounded text-white ${user.isVerified
+                                                        ? 'bg-blue-600 hover:bg-blue-700'
+                                                        : 'bg-slate-400 cursor-not-allowed'
+                                                    }`}
+                                                title={!user.isVerified ? "You must be verified to submit deals" : ""}
                                             >
                                                 Submit for Approval
                                             </button>
@@ -281,28 +315,24 @@ const CreateDeal = () => {
                                             {expandedDealId === deal.id ? 'Hide Upload' : 'Upload Documents'}
                                             {expandedDealId === deal.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                         </button>
+
+                                        {/* New Chat Button */}
+                                        <button
+                                            onClick={() => navigate(`/messages/deal/${deal.id}`)}
+                                            disabled={requests.filter(req => req.deal.id === deal.id && req.status === 'APPROVED' && req.introRequested).length === 0}
+                                            className={`flex items-center gap-1 text-sm py-1 px-3 rounded ${requests.filter(req => req.deal.id === deal.id && req.status === 'APPROVED' && req.introRequested).length > 0
+                                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            <MessageSquare className="w-3 h-3" />
+                                            Chat
+                                        </button>
                                     </div>
 
                                     {expandedDealId === deal.id && (
                                         <div className="mt-4 border-t pt-4">
                                             <DocumentUpload dealId={deal.id} onUploadSuccess={() => { setExpandedDealId(null); fetchListings(); }} />
-                                        </div>
-                                    )}
-
-                                    {/* Active Conversations Section */}
-                                    {requests.filter(req => req.deal.id === deal.id && req.status === 'APPROVED' && req.introRequested).length > 0 && (
-                                        <div className="mt-4 bg-emerald-50 p-3 rounded-md border border-emerald-100">
-                                            <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
-                                                <MessageSquare className="w-4 h-4" /> Active Conversations
-                                            </h4>
-                                            <div className="space-y-4">
-                                                {/* Since chat is currently per-deal (group chat), we show one chat box if there are any interested investors. 
-                                                    Ideally, this should be per-investor if the backend supported private channels. 
-                                                    For now, we show the Deal Room Chat. */}
-                                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm h-64 flex flex-col">
-                                                    <ChatBox dealId={deal.id} userId={user.id} />
-                                                </div>
-                                            </div>
                                         </div>
                                     )}
                                 </div>
