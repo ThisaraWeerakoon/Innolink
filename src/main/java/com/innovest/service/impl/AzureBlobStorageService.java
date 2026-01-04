@@ -33,9 +33,10 @@ public class AzureBlobStorageService implements StorageService {
     @Override
     public Resource load(String fileUrl) {
          try {
-            return new UrlResource(fileUrl);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid file URL: " + fileUrl, e);
+            byte[] data = downloadFile(fileUrl);
+            return new org.springframework.core.io.ByteArrayResource(data);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load file from Azure Blob: " + fileUrl, e);
         }
     }
 
