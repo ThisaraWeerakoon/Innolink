@@ -99,10 +99,10 @@ public class DealController {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DealController.class);
 
     @PostMapping("/deals/{id}/pitch-deck")
-    public ResponseEntity<Void> uploadPitchDeck(@PathVariable UUID id, @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+    public ResponseEntity<Void> uploadPitchDeck(@PathVariable UUID id, @RequestParam("file") org.springframework.web.multipart.MultipartFile file, @RequestParam(value = "isPrivate", defaultValue = "true") boolean isPrivate) {
         logger.info("Received Pitch Deck upload request for Deal ID: {}", id);
         logger.info("File Size: {}", file.getSize());
-        dealService.uploadPitchDeck(id, file);
+        dealService.uploadPitchDeck(id, file, isPrivate);
         logger.info("Pitch Deck upload processing handed off to service.");
         return ResponseEntity.ok().build();
     }

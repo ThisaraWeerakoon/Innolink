@@ -39,6 +39,7 @@ const DocumentUpload = ({ dealId, onUploadSuccess }) => {
             if (docType === 'PITCH_DECK') {
                 console.log("Uploading as PITCH_DECK to specialized endpoint...");
                 // Use the new Azure Blob Storage endpoint for Pitch Decks
+                formData.append('isPrivate', isPrivate);
                 await api.post(`/deals/${dealId}/pitch-deck`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',

@@ -240,7 +240,7 @@ public class DealService {
     private RagIngestionService ragIngestionService;
 
     @Transactional
-    public void uploadPitchDeck(UUID dealId, org.springframework.web.multipart.MultipartFile file) {
+    public void uploadPitchDeck(UUID dealId, org.springframework.web.multipart.MultipartFile file, boolean isPrivate) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
 
@@ -253,7 +253,7 @@ public class DealService {
         doc.setDeal(deal);
         doc.setFileUrl(filename);
         doc.setFileType(DocType.PITCH_DECK);
-        doc.setPrivate(true);
+        doc.setPrivate(isPrivate);
         doc.setCreatedAt(java.time.LocalDateTime.now());
         dealDocumentRepository.save(doc);
 
