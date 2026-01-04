@@ -116,18 +116,28 @@ public class DealController {
     private EntityManager entityManager;
 
     @GetMapping("/debug/embeddings")
-    public ResponseEntity<List<Map<String, Object>>> getEmbeddings() {
-        // Native query to fetch text and metadata, ignoring the vector column for readability
+    public ResponseEntity<String> getEmbeddings() {
+        // Native query to fetch text, metadata AND the vector embedding
         List<Object[]> results = entityManager.createNativeQuery(
-            "SELECT cast(embedding_id as varchar), text, cast(metadata as varchar) FROM embeddings LIMIT 50"
+            "SELECT cast(embedding_id as varchar), text, cast(metadata as varchar), cast(embedding as varchar) FROM embeddings LIMIT 20"
         ).getResultList();
 
-        List<Map<String, Object>> response = results.stream().map(row -> Map.of(
-            "id", row[0],
-            "text", row[1],
-            "metadata", row[2]
-        )).collect(Collectors.toList());
+        StringBuilder html = new StringBuilder();
+        html.append("<html><head><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; } th { background-color: #f2f2f2; } .vector { font-family: monospace; font-size: 10px; word-break: break-all; max-width: 400px; }</style></head><body>");
+        html.append("<h2>Vector Database Contents (Top 20)</h2>");
+        html.append("<table>");
+        html.append("<tr><th>ID</th><th>Text Content</th><th>Metadata</th><th>Vector Embedding</th></tr>");
 
-        return ResponseEntity.ok(response);
+        for (Object[] row : results) {
+            html.append("<tr>");
+            html.append("<td>").append(row[0]).append("</td>"); // ID
+            html.append("<td>").append(row[1]).append("</td>"); // Text
+            html.append("<td>").append(row[2]).append("</td>"); // Metadata
+            html.append("<td class='vector'>").append(row[3]).append("</td>"); // Vector
+            html.append("</tr>");
+        }
+        html.append("</table></body></html>");
+
+        return ResponseEntity.ok().contentType(org.springframework.http.MediaType.TEXT_HTML).body(html.toString());
     }
 }
