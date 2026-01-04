@@ -248,6 +248,15 @@ public class DealService {
         deal.setPitchDeckFilename(filename);
         dealRepository.save(deal);
 
+        // Create DealDocument entry so it appears in the frontend list
+        DealDocument doc = new DealDocument();
+        doc.setDeal(deal);
+        doc.setFileUrl(filename);
+        doc.setFileType(DocType.PITCH_DECK);
+        doc.setPrivate(true);
+        doc.setCreatedAt(java.time.LocalDateTime.now());
+        dealDocumentRepository.save(doc);
+
         // Trigger RAG Ingestion asynchronously
         ragIngestionService.ingestPitchDeck(dealId, filename);
     }
