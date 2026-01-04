@@ -293,8 +293,8 @@ BEGIN
     -- ==========================================
     
     IF v_invest_1_id IS NOT NULL THEN
-        INSERT INTO mandates (investor_id, description, amount_allocation, target_industry)
-        SELECT v_invest_1_id, 'Looking for sustainable farming startups with existing revenue.', 100000, 'AgriTech'
+        INSERT INTO mandates (investor_id, title, description, amount_allocation, target_industry)
+        SELECT v_invest_1_id, 'Sustainable Farming Mandate', 'Looking for sustainable farming startups with existing revenue.', 100000, 'AgriTech'
         WHERE NOT EXISTS (SELECT 1 FROM mandates WHERE investor_id = v_invest_1_id);
     END IF;
 

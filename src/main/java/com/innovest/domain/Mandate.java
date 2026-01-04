@@ -23,7 +23,7 @@ public class Mandate {
     @JoinColumn(name = "investor_id", nullable = false)
     private User investor;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String title;
 
     @Column(nullable = false)
