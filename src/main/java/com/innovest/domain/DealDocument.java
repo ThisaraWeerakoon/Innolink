@@ -27,6 +27,9 @@ public class DealDocument {
     @Column(name = "file_type", nullable = false)
     private DocType fileType;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "is_private", nullable = false)
     private boolean isPrivate = true;
 
@@ -63,6 +66,14 @@ public class DealDocument {
 
     public void setFileType(DocType fileType) {
         this.fileType = fileType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public boolean isPrivate() {
