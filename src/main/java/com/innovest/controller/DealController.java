@@ -12,7 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @RestController
 @RequestMapping("/api")
@@ -106,5 +111,23 @@ public class DealController {
     public ResponseEntity<List<String>> searchDeals(@RequestParam String query, @RequestParam(required = false) UUID dealId) {
         // Default max results to 5
         return ResponseEntity.ok(ragSearchService.search(query, dealId, 5));
+    }
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @GetMapping("/debug/embeddings")
+    public ResponseEntity<List<Map<String, Object>>> getEmbeddings() {
+        // Native query to fetch text and metadata, ignoring the vector column for readability
+        List<Object[]> results = entityManager.createNativeQuery(
+            "SELECT cast(embedding_id as varchar), text, cast(metadata as varchar) FROM embeddings LIMIT 50"
+        ).getResultList();
+
+        List<Map<String, Object>> response = results.stream().map(row -> Map.of(
+            "id", row[0],
+            "text", row[1],
+            "metadata", row[2]
+        )).collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 }
