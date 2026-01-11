@@ -62,7 +62,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://lemon-pebble-04326950f.3.azurestaticapps.net"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://lemon-pebble-04326950f.3.azurestaticapps.net", "https://www.innolink.live", "https://innolink.live"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
