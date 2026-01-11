@@ -164,8 +164,8 @@ const CreateDeal = () => {
                                 onClick={() => handleCreate('PENDING_APPROVAL')}
                                 disabled={!user.isVerified}
                                 className={`px-6 py-2 rounded font-medium text-white transition-colors ${user.isVerified
-                                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                                        : 'bg-slate-400 cursor-not-allowed'
+                                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                                    : 'bg-slate-400 cursor-not-allowed'
                                     }`}
                             >
                                 Publish Deal
@@ -251,7 +251,7 @@ const CreateDeal = () => {
                                                 {deal.documents.map(doc => (
                                                     <div key={doc.id} className="flex justify-between items-center bg-white p-2 rounded border border-slate-200">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-medium text-slate-700">{doc.fileType}</span>
+                                                            <span className="text-sm font-medium text-slate-700">{doc.name || doc.fileType}</span>
                                                             <span className={`text-xs px-2 py-0.5 rounded ${doc.private ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
                                                                 {doc.private ? 'Private' : 'Public'}
                                                             </span>
@@ -291,8 +291,8 @@ const CreateDeal = () => {
                                                 onClick={() => handleSubmitForApproval(deal.id)}
                                                 disabled={!user.isVerified}
                                                 className={`text-sm py-1 px-3 rounded text-white ${user.isVerified
-                                                        ? 'bg-blue-600 hover:bg-blue-700'
-                                                        : 'bg-slate-400 cursor-not-allowed'
+                                                    ? 'bg-blue-600 hover:bg-blue-700'
+                                                    : 'bg-slate-400 cursor-not-allowed'
                                                     }`}
                                                 title={!user.isVerified ? "You must be verified to submit deals" : ""}
                                             >

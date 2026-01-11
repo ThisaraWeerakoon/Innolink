@@ -88,6 +88,7 @@ public class DocumentController {
             
             DealDocument document = new DealDocument();
             document.setFileUrl(fileUrl);
+            document.setName(file.getOriginalFilename());
             document.setFileType(type);
             document.setPrivate(isPrivate);
             

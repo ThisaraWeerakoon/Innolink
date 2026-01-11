@@ -233,6 +233,35 @@ public class DealService {
                 .collect(Collectors.toSet());
     }
 
+    @Autowired
+    private StorageService storageService;
+
+    @Autowired
+    private RagIngestionService ragIngestionService;
+
+    @Transactional
+    public void uploadPitchDeck(UUID dealId, org.springframework.web.multipart.MultipartFile file, boolean isPrivate) {
+        Deal deal = dealRepository.findById(dealId)
+                .orElseThrow(() -> new RuntimeException("Deal not found"));
+
+        String filename = storageService.uploadFile(file, "pitch-decks");
+        deal.setPitchDeckFilename(filename);
+        dealRepository.save(deal);
+
+        // Create DealDocument entry so it appears in the frontend list
+        DealDocument doc = new DealDocument();
+        doc.setDeal(deal);
+        doc.setName(file.getOriginalFilename());
+        doc.setFileUrl(filename);
+        doc.setFileType(DocType.PITCH_DECK);
+        doc.setPrivate(isPrivate);
+        doc.setCreatedAt(java.time.LocalDateTime.now());
+        dealDocumentRepository.save(doc);
+
+        // Trigger RAG Ingestion asynchronously
+        ragIngestionService.ingestPitchDeck(dealId, filename);
+    }
+
     private DealDTO convertToDTO(Deal deal) {
         DealDTO dto = new DealDTO();
         dto.setId(deal.getId());
@@ -253,6 +282,8 @@ public class DealService {
                     .map(dealMapper::toDocumentDto)
                     .collect(Collectors.toList()));
         }
+        // Add pitch deck filename to DTO if needed, but purely optional based on request.
+        // User didn't ask to return it in DTO, just save it.
         return dto;
     }
 }

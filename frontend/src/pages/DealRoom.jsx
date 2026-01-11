@@ -178,7 +178,7 @@ const DealRoom = () => {
                                             <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-emerald-200 transition-colors group">
                                                 <div className="flex items-center">
                                                     <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors mr-3" />
-                                                    <span className="font-medium text-slate-700">{doc.name}</span>
+                                                    <span className="font-medium text-slate-700">{doc.name || doc.fileType}</span>
                                                 </div>
                                                 <button
                                                     onClick={async () => {

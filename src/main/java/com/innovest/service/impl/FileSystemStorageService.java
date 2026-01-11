@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
-@Profile("!prod")
+@Profile("!prod & !dev")
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation = Paths.get("uploads");
@@ -38,6 +38,8 @@ public class FileSystemStorageService implements StorageService {
             }
             // Generate unique filename
             String originalFilename = file.getOriginalFilename();
+            System.out.println("WARN: FileSystemStorageService is active. Storing " + originalFilename + " to local disk.");
+
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
@@ -70,6 +72,21 @@ public class FileSystemStorageService implements StorageService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Could not read file: " + path, e);
+        }
+    }
+
+    @Override
+    public String uploadFile(MultipartFile file, String folderName) {
+        return store(file, folderName);
+    }
+
+    @Override
+    public byte[] downloadFile(String filename) {
+        try {
+             Path file = this.rootLocation.resolve(filename).normalize();
+             return Files.readAllBytes(file);
+        } catch (IOException e) {
+             throw new RuntimeException("Failed to read file.", e);
         }
     }
 }

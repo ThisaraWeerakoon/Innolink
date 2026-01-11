@@ -23,7 +23,7 @@ public class Mandate {
     @JoinColumn(name = "investor_id", nullable = false)
     private User investor;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String title;
 
     @Column(nullable = false)
@@ -48,4 +48,28 @@ public class Mandate {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    // Manual Getters/Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public User getInvestor() { return investor; }
+    public void setInvestor(User investor) { this.investor = investor; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getTargetIndustry() { return targetIndustry; }
+    public void setTargetIndustry(String targetIndustry) { this.targetIndustry = targetIndustry; }
+    public String getStagePreference() { return stagePreference; }
+    public void setStagePreference(String stagePreference) { this.stagePreference = stagePreference; }
+    public BigDecimal getMinTicketSize() { return minTicketSize; }
+    public void setMinTicketSize(BigDecimal minTicketSize) { this.minTicketSize = minTicketSize; }
+    public BigDecimal getMaxTicketSize() { return maxTicketSize; }
+    public void setMaxTicketSize(BigDecimal maxTicketSize) { this.maxTicketSize = maxTicketSize; }
+    public String getGeography() { return geography; }
+    public void setGeography(String geography) { this.geography = geography; }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
