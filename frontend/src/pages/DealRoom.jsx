@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, FileText, CheckCircle, Clock } from 'lucide-react';
+import ChatBox from '../components/ChatBox';
 
 const DealRoom = () => {
     const { id } = useParams();
@@ -177,19 +178,31 @@ const DealRoom = () => {
                                             <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-emerald-200 transition-colors group">
                                                 <div className="flex items-center">
                                                     <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors mr-3" />
-                                                    <span className="font-medium text-slate-700">{doc.name}</span>
+                                                    <span className="font-medium text-slate-700">{doc.name || doc.fileType}</span>
                                                 </div>
-                                                <a
-                                                    href={`https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net/api/documents/${doc.id}/download?userId=${user.id}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center"
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const response = await api.get(`/documents/${doc.id}/download?userId=${user.id}`, {
+                                                                responseType: 'blob',
+                                                            });
+                                                            const url = window.URL.createObjectURL(new Blob([response.data]));
+                                                            const link = document.createElement('a');
+                                                            link.href = url;
+                                                            link.setAttribute('download', `${doc.name || 'document'}.pdf`);
+                                                            document.body.appendChild(link);
+                                                            link.click();
+                                                            link.remove();
+                                                        } catch (error) {
+                                                            console.error("Download failed", error);
+                                                            alert("Failed to download document");
+                                                        }
+                                                    }}
+                                                    className="text-emerald-600 hover:text-emerald-700 font-medium text-sm px-3 py-1 rounded hover:bg-emerald-50 transition-colors flex items-center cursor-pointer"
                                                 >
                                                     <Shield className="w-3 h-3 mr-1" />
                                                     Download Watermarked
-                                                    <Shield className="w-3 h-3 mr-1" />
-                                                    Download Watermarked
-                                                </a>
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
@@ -224,11 +237,16 @@ const DealRoom = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm h-96 flex flex-col">
-                                        <div className="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
-                                            {/* Chat Messages Placeholder - In real app, fetch from backend */}
-                                            <ChatBox dealId={id} userId={user.id} />
-                                        </div>
+                                    <div className="mt-4">
+                                        <button
+                                            onClick={() => window.location.href = `/messages/deal/${id}`}
+                                            className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors inline-flex items-center gap-2"
+                                        >
+                                            Chat with Innovator
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -236,114 +254,6 @@ const DealRoom = () => {
                     </div>
                 )}
             </div>
-        </div>
-    );
-};
-
-// Simple Chat Component
-import { Client } from '@stomp/stompjs';
-
-const ChatBox = ({ dealId, userId }) => {
-    const { api } = useAuth();
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState("");
-    const [stompClient, setStompClient] = useState(null);
-
-    // Initial fetch for history
-    const fetchMessages = async () => {
-        try {
-            const res = await api.get(`/chat/messages?dealId=${dealId}&userId=${userId}`);
-            setMessages(res.data);
-        } catch (err) {
-            console.error("Failed to fetch messages", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchMessages();
-
-        // WebSocket Connection
-        const apiUrl = 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net';
-        const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
-
-        const client = new Client({
-            brokerURL: wsUrl,
-            onConnect: () => {
-                console.log('Connected to WebSocket');
-                client.subscribe(`/topic/deal/${dealId}`, (message) => {
-                    const receivedMsg = JSON.parse(message.body);
-                    setMessages(prev => [...prev, receivedMsg]);
-                });
-            },
-            onStompError: (frame) => {
-                console.error('Broker reported error: ' + frame.headers['message']);
-                console.error('Additional details: ' + frame.body);
-            },
-        });
-
-        client.activate();
-        setStompClient(client);
-
-        return () => {
-            client.deactivate();
-        };
-    }, [dealId, userId]);
-
-    const handleSend = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim()) return;
-
-        if (stompClient && stompClient.connected) {
-            stompClient.publish({
-                destination: `/app/chat/${dealId}/sendMessage`,
-                body: JSON.stringify({
-                    dealId,
-                    senderId: userId,
-                    content: newMessage
-                }),
-            });
-            setNewMessage("");
-            // No need to fetchMessages(), the subscription will handle the update
-        } else {
-            console.error("WebSocket is not connected");
-        }
-    };
-
-    return (
-        <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto space-y-3 p-2">
-                {messages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.sender.id === userId ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.sender.id === userId
-                            ? 'bg-emerald-600 text-white rounded-br-none'
-                            : 'bg-slate-100 text-slate-800 rounded-bl-none'
-                            }`}>
-                            <p>{msg.content}</p>
-                            <span className="text-xs opacity-70 mt-1 block">
-                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-                {messages.length === 0 && (
-                    <p className="text-center text-slate-400 text-sm mt-10">No messages yet. Start the conversation!</p>
-                )}
-            </div>
-            <form onSubmit={handleSend} className="border-t border-slate-200 p-3 flex gap-2">
-                <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
-                />
-                <button
-                    type="submit"
-                    className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-emerald-700"
-                >
-                    Send
-                </button>
-            </form>
         </div>
     );
 };

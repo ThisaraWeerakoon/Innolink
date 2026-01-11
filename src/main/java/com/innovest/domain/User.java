@@ -37,6 +37,30 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private InnovatorProfile innovatorProfile;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private InvestorProfile investorProfile;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToMany
+    @JoinTable(
+        name = "user_saved_mandates",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "mandate_id")
+    )
+    private java.util.Set<Mandate> savedMandates = new java.util.HashSet<>();
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToMany
+    @JoinTable(
+        name = "user_saved_deals",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "deal_id")
+    )
+    private java.util.Set<Deal> savedDeals = new java.util.HashSet<>();
+
     public UUID getId() {
         return id;
     }
@@ -91,5 +115,37 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.util.Set<Mandate> getSavedMandates() {
+        return savedMandates;
+    }
+
+    public void setSavedMandates(java.util.Set<Mandate> savedMandates) {
+        this.savedMandates = savedMandates;
+    }
+
+    public java.util.Set<Deal> getSavedDeals() {
+        return savedDeals;
+    }
+
+    public void setSavedDeals(java.util.Set<Deal> savedDeals) {
+        this.savedDeals = savedDeals;
+    }
+
+    public InnovatorProfile getInnovatorProfile() {
+        return innovatorProfile;
+    }
+
+    public void setInnovatorProfile(InnovatorProfile innovatorProfile) {
+        this.innovatorProfile = innovatorProfile;
+    }
+
+    public InvestorProfile getInvestorProfile() {
+        return investorProfile;
+    }
+
+    public void setInvestorProfile(InvestorProfile investorProfile) {
+        this.investorProfile = investorProfile;
     }
 }

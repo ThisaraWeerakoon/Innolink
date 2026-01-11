@@ -4,8 +4,8 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Runtime stage uses Temurin JRE (smaller footprint, consistent with CI setup-java distribution)
-FROM eclipse-temurin:17-jre-alpine
+# Runtime stage uses Temurin JRE (Debian-based) to support ONNX Runtime (requires glibc/libstdc++)
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 # Copy the built jar (assumes a single jar artifact). Adjust the pattern if multiple jars are produced.
 COPY --from=build /app/target/*.jar app.jar

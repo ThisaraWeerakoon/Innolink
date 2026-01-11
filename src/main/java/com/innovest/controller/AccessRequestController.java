@@ -27,6 +27,11 @@ public class AccessRequestController {
         return ResponseEntity.ok(accessRequestService.approveRequest(id, userId));
     }
 
+    @PutMapping("/innovator/requests/{id}/reject")
+    public ResponseEntity<AccessRequest> rejectRequest(@PathVariable UUID id, @RequestParam UUID userId) {
+        return ResponseEntity.ok(accessRequestService.rejectRequest(id, userId));
+    }
+
     @PostMapping("/investor/requests/{id}/sign-nda")
     public ResponseEntity<AccessRequest> signNda(@PathVariable UUID id, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.signNda(id, userId));
@@ -36,6 +41,7 @@ public class AccessRequestController {
     public ResponseEntity<AccessRequest> requestIntro(@PathVariable UUID id, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.requestIntro(id, userId));
     }
+
     @GetMapping("/access/status/{dealId}")
     public ResponseEntity<AccessRequest> getAccessStatus(@PathVariable UUID dealId, @RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.getAccessRequest(dealId, userId));
@@ -44,5 +50,10 @@ public class AccessRequestController {
     @GetMapping("/innovator/requests")
     public ResponseEntity<java.util.List<AccessRequest>> getRequestsByInnovator(@RequestParam UUID userId) {
         return ResponseEntity.ok(accessRequestService.getRequestsByInnovator(userId));
+    }
+
+    @GetMapping("/investor/requests")
+    public ResponseEntity<java.util.List<AccessRequest>> getRequestsByInvestor(@RequestParam UUID userId) {
+        return ResponseEntity.ok(accessRequestService.getRequestsByInvestor(userId));
     }
 }

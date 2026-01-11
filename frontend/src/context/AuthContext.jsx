@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     // Create axios instance
     const api = axios.create({
-        baseURL: 'https://innolink-backend-atbnh9h5h4h7fyhc.eastus-01.azurewebsites.net/api',
+        baseURL: import.meta.env.VITE_API_URL,
     });
 
     // Attach token to requests
@@ -28,26 +28,45 @@ export const AuthProvider = ({ children }) => {
     );
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        const storedToken = localStorage.getItem('token');
-        if (storedUser && storedToken) {
-            setUser(JSON.parse(storedUser));
-            setToken(storedToken);
-        }
-        setLoading(false);
+        const checkAuth = async () => {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                try {
+                    // Verify token with backend
+                    const response = await api.get('/auth/verify');
+                    const userData = {
+                        ...response.data,
+                        isVerified: response.data.verified
+                    };
+                    setUser(userData);
+                    setToken(storedToken);
+                } catch (error) {
+                    console.error("Token verification failed", error);
+                    // If verification fails, clear everything
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setUser(null);
+                    setToken(null);
+                }
+            }
+            setLoading(false);
+        };
+
+        checkAuth();
     }, []);
 
     const login = async (email, password) => {
         try {
             const response = await api.post('/auth/login', { email, password });
 
-            // Response now contains { accessToken, userId, email, role, tokenType }
-            const { accessToken, userId, email: userEmail, role } = response.data;
+            // Response now contains { accessToken, userId, email, role, tokenType, verified }
+            const { accessToken, userId, email: userEmail, role, verified } = response.data;
 
             const userData = {
                 id: userId,
                 email: userEmail,
-                role: role
+                role: role,
+                isVerified: verified
             };
 
             setToken(accessToken);

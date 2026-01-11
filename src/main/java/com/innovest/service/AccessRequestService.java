@@ -37,7 +37,7 @@ public class AccessRequestService {
         request.setDeal(deal);
         request.setInvestor(investor);
         request.setStatus(RequestStatus.PENDING);
-        
+
         return accessRequestRepository.save(request);
     }
 
@@ -51,6 +51,19 @@ public class AccessRequestService {
         }
 
         request.setStatus(RequestStatus.APPROVED);
+        return accessRequestRepository.save(request);
+    }
+
+    @Transactional
+    public AccessRequest rejectRequest(UUID requestId, UUID innovatorId) {
+        AccessRequest request = accessRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (!request.getDeal().getInnovator().getId().equals(innovatorId)) {
+            throw new RuntimeException("Not authorized to reject this request");
+        }
+
+        request.setStatus(RequestStatus.DENIED);
         return accessRequestRepository.save(request);
     }
 
@@ -88,11 +101,16 @@ public class AccessRequestService {
         request.setIntroRequested(true);
         return accessRequestRepository.save(request);
     }
+
     public AccessRequest getAccessRequest(UUID dealId, UUID investorId) {
         return accessRequestRepository.findByDealIdAndInvestorId(dealId, investorId).orElse(null);
     }
 
     public java.util.List<AccessRequest> getRequestsByInnovator(UUID innovatorId) {
         return accessRequestRepository.findByDealInnovatorId(innovatorId);
+    }
+
+    public java.util.List<AccessRequest> getRequestsByInvestor(UUID investorId) {
+        return accessRequestRepository.findByInvestorId(investorId);
     }
 }

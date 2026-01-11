@@ -30,6 +30,9 @@ public class Deal {
 
     private String industry;
 
+    @Column(name = "pitch_deck_filename")
+    private String pitchDeckFilename;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DealStatus status = DealStatus.DRAFT;
@@ -39,6 +42,9 @@ public class Deal {
 
     @Column(name = "updated_at")
     private java.time.LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private java.util.List<DealDocument> documents;
 
     public UUID getId() {
         return id;
@@ -88,6 +94,14 @@ public class Deal {
         this.industry = industry;
     }
 
+    public String getPitchDeckFilename() {
+        return pitchDeckFilename;
+    }
+
+    public void setPitchDeckFilename(String pitchDeckFilename) {
+        this.pitchDeckFilename = pitchDeckFilename;
+    }
+
     public DealStatus getStatus() {
         return status;
     }
@@ -110,5 +124,13 @@ public class Deal {
 
     public void setUpdatedAt(java.time.LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.util.List<DealDocument> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(java.util.List<DealDocument> documents) {
+        this.documents = documents;
     }
 }

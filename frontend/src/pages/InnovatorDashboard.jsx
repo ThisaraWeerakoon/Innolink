@@ -1,247 +1,178 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import ChatBox from '../components/ChatBox';
-import { MessageSquare, X } from 'lucide-react';
+import MandateCard from '../components/MandateCard';
+import { Search, Filter, Bookmark, Clock, Zap } from 'lucide-react';
 
 const InnovatorDashboard = () => {
-    const { user, api } = useAuth();
-    const [listings, setListings] = useState([]);
-    const [requests, setRequests] = useState([]);
-    const [title, setTitle] = useState('');
-    const [industry, setIndustry] = useState('');
-    const [goal, setGoal] = useState('');
-    const [teaser, setTeaser] = useState('');
-    const [docUrl, setDocUrl] = useState('');
-    const [docType, setDocType] = useState('PITCH_DECK');
+    const { api } = useAuth();
+    const [activeTab, setActiveTab] = useState('best_matches');
+    const [mandates, setMandates] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [savedMandateIds, setSavedMandateIds] = useState(new Set());
 
-    // Chat State
-    const [activeChat, setActiveChat] = useState(null); // { dealId, investorId, investorName }
+    // Dummy data for "Best Matches" and "Saved Mandates"
+    const dummyBestMatches = [
+        { id: 'mm1', title: 'Green Energy Fund', industryPreference: 'Clean Energy', minInvestment: 100000, maxInvestment: 1000000, stagePreference: 'Seed', description: 'Looking for innovative solar and wind projects.' },
+        { id: 'mm2', title: 'Health Tech Ventures', industryPreference: 'Healthcare', minInvestment: 500000, maxInvestment: 2000000, stagePreference: 'Series A', description: 'Focusing on AI-driven diagnostic tools.' },
+    ];
+
+    const dummySavedMandates = [
+        { id: 'ms1', title: 'AgriTech Capital', industryPreference: 'Agriculture', minInvestment: 200000, maxInvestment: 500000, stagePreference: 'Pre-Seed', description: 'Supporting sustainable farming solutions.' },
+    ];
 
     useEffect(() => {
-        if (user) {
-            fetchListings();
-            fetchRequests();
-        }
-    }, [user]);
+        fetchMandates();
+    }, [activeTab]);
 
-    const fetchRequests = async () => {
+    const fetchMandates = async () => {
+        setLoading(true);
         try {
-            const response = await api.get(`/innovator/requests?userId=${user.id}`);
-            setRequests(response.data);
-        } catch (error) {
-            console.error("Failed to fetch requests:", error);
-        }
-    };
+            // Always fetch saved mandates to check status
+            const savedResponse = await api.get('/mandates/saved');
+            const savedIds = new Set(savedResponse.data.map(m => m.id));
+            setSavedMandateIds(savedIds);
 
-    const handleApproveRequest = async (requestId) => {
-        try {
-            await api.put(`/innovator/requests/${requestId}?userId=${user.id}`);
-            alert('Request approved!');
-            fetchRequests();
-        } catch (error) {
-            console.error("Failed to approve request:", error);
-            alert("Failed to approve request");
-        }
-    };
-
-    const fetchListings = async () => {
-        try {
-            const response = await api.get(`/innovator/deals?userId=${user.id}`);
-            setListings(response.data);
-        } catch (error) {
-            console.error("Failed to fetch listings:", error);
-        }
-    };
-
-    const handleSubmitForApproval = async (dealId) => {
-        try {
-            await api.post(`/innovator/deals/${dealId}/submit?userId=${user.id}`);
-            alert('Deal submitted for approval!');
-            fetchListings();
-        } catch (error) {
-            console.error("Failed to submit deal:", error);
-            alert(`Failed to submit: ${error.response?.data?.message || error.message}`);
-        }
-    };
-
-    const handleCreate = async (e) => {
-        e.preventDefault();
-        try {
-            const dealResponse = await api.post(`/innovator/deals?userId=${user.id}`, {
-                title,
-                industry,
-                targetAmount: parseFloat(goal),
-                teaserSummary: teaser,
-            });
-
-            if (docUrl) {
-                await api.post(`/innovator/deals/${dealResponse.data.id}/documents?userId=${user.id}`, {
-                    fileUrl: docUrl,
-                    fileType: docType,
-                    isPrivate: true
-                });
+            if (activeTab === 'saved_mandates') {
+                setMandates(savedResponse.data);
+            } else if (activeTab === 'most_recent') {
+                const response = await api.get('/mandates?sortBy=recent');
+                setMandates(response.data);
+            } else {
+                // Fetch all mandates for other tabs (filtering can be added later)
+                const response = await api.get('/mandates');
+                setMandates(response.data);
             }
-            alert('Listing created!');
-            // Reset form
-            setTitle('');
-            setIndustry('');
-            setGoal('');
-            setTeaser('');
-            setDocUrl('');
-            fetchListings(); // Refresh listings
         } catch (error) {
-            console.error("Deal Creation Error:", error);
-            alert(`Failed to create listing: ${error.response?.data?.message || error.message}`);
+            console.error("Failed to fetch mandates:", error);
+            setMandates([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toggleSave = async (mandateId) => {
+        try {
+            if (savedMandateIds.has(mandateId)) {
+                await api.delete(`/mandates/${mandateId}/save`);
+                const newSaved = new Set(savedMandateIds);
+                newSaved.delete(mandateId);
+                setSavedMandateIds(newSaved);
+
+                // If on saved tab, remove from list
+                if (activeTab === 'saved_mandates') {
+                    setMandates(prev => prev.filter(m => m.id !== mandateId));
+                }
+            } else {
+                await api.post(`/mandates/${mandateId}/save`);
+                const newSaved = new Set(savedMandateIds);
+                newSaved.add(mandateId);
+                setSavedMandateIds(newSaved);
+            }
+        } catch (error) {
+            console.error("Failed to toggle save:", error);
         }
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto relative">
-            <h1 className="text-3xl font-bold mb-8 text-slate-900">Innovator Dashboard</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* Main Content */}
+                <div className="flex-1">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-slate-900">Find Mandates</h1>
+                        <p className="text-slate-500 mt-2">Connect with investors looking for projects like yours.</p>
+                    </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
-                <h2 className="text-xl font-bold mb-4 text-slate-800">Create New Listing</h2>
-                <form onSubmit={handleCreate} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Title</label>
-                        <input className="w-full p-2 border rounded" value={title} onChange={e => setTitle(e.target.value)} required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Industry</label>
-                            <input className="w-full p-2 border rounded" value={industry} onChange={e => setIndustry(e.target.value)} required />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700">Funding Goal ($)</label>
-                            <input type="number" className="w-full p-2 border rounded" value={goal} onChange={e => setGoal(e.target.value)} required />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Public Teaser</label>
-                        <textarea className="w-full p-2 border rounded h-24" value={teaser} onChange={e => setTeaser(e.target.value)} required />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Private Document URL</label>
-                        <input className="w-full p-2 border rounded" value={docUrl} onChange={e => setDocUrl(e.target.value)} placeholder="https://example.com/pitch-deck.pdf" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">Document Type</label>
-                        <select className="w-full p-2 border rounded" value={docType} onChange={e => setDocType(e.target.value)}>
-                            <option value="PITCH_DECK">Pitch Deck</option>
-                            <option value="FINANCIALS">Financials</option>
-                            <option value="LEGAL">Legal</option>
-                        </select>
-                    </div>
-                    <button type="submit" className="bg-slate-900 text-white px-6 py-2 rounded hover:bg-slate-800">
-                        Create Listing
-                    </button>
-                </form>
-            </div>
-
-            {/* My Listings and Access Requests */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h2 className="text-xl font-bold mb-4 text-slate-800">My Listings</h2>
-                    {listings.length === 0 ? (
-                        <p className="text-slate-500 italic">No active listings.</p>
-                    ) : (
-                        <div className="space-y-4">
-                            {listings.map(deal => (
-                                <div key={deal.id} className="border p-4 rounded hover:bg-slate-50">
-                                    <h3 className="font-bold text-lg">{deal.title}</h3>
-                                    <p className="text-sm text-slate-600">{deal.industry}</p>
-                                    <div className="flex justify-between mt-2 text-sm">
-                                        <span className="font-semibold text-emerald-600">${deal.targetAmount.toLocaleString()}</span>
-                                        <span className={`px-2 py-0.5 rounded text-xs ${deal.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : deal.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-                                            {deal.status}
-                                        </span>
-                                    </div>
-                                    {deal.status === 'DRAFT' && (
-                                        <button
-                                            onClick={() => handleSubmitForApproval(deal.id)}
-                                            className="mt-3 w-full bg-blue-600 text-white text-sm py-1 rounded hover:bg-blue-700"
-                                        >
-                                            Submit for Approval
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h2 className="text-xl font-bold mb-4 text-slate-800">Access Requests</h2>
-                    {requests.length === 0 ? (
-                        <p className="text-slate-500 italic">No pending requests.</p>
-                    ) : (
-                        <div className="space-y-4">
-                            {requests.map(req => (
-                                <div key={req.id} className="border p-4 rounded flex justify-between items-center">
-                                    <div>
-                                        <p className="font-bold text-slate-800">{req.deal.title}</p>
-                                        <p className="text-sm text-slate-600">Investor: {req.investor.email}</p>
-                                        <div className="flex gap-2 mt-1">
-                                            <span className={`text-xs px-2 py-0.5 rounded ${req.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {req.status}
-                                            </span>
-                                            {req.introRequested && (
-                                                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 flex items-center">
-                                                    <MessageSquare className="w-3 h-3 mr-1" />
-                                                    Chat Requested
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        {req.status === 'PENDING' && (
-                                            <button
-                                                onClick={() => handleApproveRequest(req.id)}
-                                                className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
-                                            >
-                                                Approve
-                                            </button>
-                                        )}
-                                        {req.status === 'APPROVED' && req.introRequested && (
-                                            <button
-                                                onClick={() => setActiveChat({
-                                                    dealId: req.deal.id,
-                                                    investorId: req.investor.id,
-                                                    investorName: req.investor.email
-                                                })}
-                                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
-                                            >
-                                                <MessageSquare className="w-3 h-3 mr-1" />
-                                                Chat
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Chat Modal */}
-            {activeChat && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md h-[600px] flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                            <h3 className="font-bold text-slate-800">Chat with {activeChat.investorName}</h3>
-                            <button onClick={() => setActiveChat(null)} className="text-slate-500 hover:text-slate-700">
-                                <X className="w-5 h-5" />
+                    {/* Tabs */}
+                    <div className="border-b border-slate-200 mb-6">
+                        <nav className="-mb-px flex space-x-8">
+                            <button
+                                onClick={() => setActiveTab('best_matches')}
+                                className={`${activeTab === 'best_matches' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                            >
+                                <Zap className="w-4 h-4 mr-2" />
+                                Best Matches
                             </button>
+                            <button
+                                onClick={() => setActiveTab('most_recent')}
+                                className={`${activeTab === 'most_recent' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                            >
+                                <Clock className="w-4 h-4 mr-2" />
+                                Most Recent
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('saved_mandates')}
+                                className={`${activeTab === 'saved_mandates' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                            >
+                                <Bookmark className="w-4 h-4 mr-2" />
+                                Saved Mandates ({savedMandateIds.size})
+                            </button>
+                        </nav>
+                    </div>
+
+                    {/* Content */}
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                         </div>
-                        <div className="flex-1 overflow-hidden">
-                            <ChatBox
-                                dealId={activeChat.dealId}
-                                userId={user.id}
-                                otherUserName={activeChat.investorName}
-                            />
+                    ) : (
+                        <div className="space-y-4">
+                            {mandates.length === 0 ? (
+                                <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
+                                    <p className="text-slate-500">No mandates found.</p>
+                                </div>
+                            ) : (
+                                mandates.map(mandate => (
+                                    <MandateCard
+                                        key={mandate.id}
+                                        mandate={{
+                                            ...mandate,
+                                            industryPreference: mandate.targetIndustry, // Map backend field to frontend prop
+                                            minInvestment: mandate.minTicketSize,
+                                            maxInvestment: mandate.maxTicketSize,
+                                            stagePreference: mandate.stagePreference
+                                        }}
+                                        isSaved={savedMandateIds.has(mandate.id)}
+                                        onToggleSave={toggleSave}
+                                    />
+                                ))
+                            )}
                         </div>
+                    )}
+                </div>
+
+                {/* Sidebar */}
+                <div className="w-full md:w-80 space-y-6">
+                    {/* Profile Summary */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <div className="flex items-center space-x-4 mb-4">
+                            <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xl">
+                                I
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900">Innovator Profile</h3>
+                                <p className="text-sm text-slate-500">Complete your profile</p>
+                            </div>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5 mb-4">
+                            <div className="bg-emerald-600 h-2.5 rounded-full" style={{ width: '60%' }}></div>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-4">60% completed</p>
+                        <button className="w-full border border-emerald-600 text-emerald-600 rounded py-2 text-sm font-medium hover:bg-emerald-50">
+                            Edit Profile
+                        </button>
+                    </div>
+
+                    {/* Promote */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h3 className="font-bold text-slate-900 mb-2">Get Funded Faster</h3>
+                        <p className="text-sm text-slate-500 mb-4">Highlight your deal to top investors.</p>
+                        <button className="text-emerald-600 text-sm font-medium hover:underline">
+                            Learn more
+                        </button>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
